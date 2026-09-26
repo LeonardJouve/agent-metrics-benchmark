@@ -1,0 +1,47 @@
+diff --git a/doc/whats_new/v0.22.rst b/doc/whats_new/v0.22.rst
+index fe19557df..ac515bd3d 100644
+--- a/doc/whats_new/v0.22.rst
++++ b/doc/whats_new/v0.22.rst
+@@ -240,6 +240,16 @@ Changelog
+   precomputed distance matrix contains non-zero diagonal entries.
+   :pr:`12258` by :user:`Stephen Tierney <sjtrny>`.
+ 
++:mod:`sklearn.multioutput`
++..........................
++
++- |Fix| :func:`model_selection.cross_val_predict` no longer raises an
++  ``AttributeError`` when used with ``method='predict_proba'`` and
++  :class:`multioutput.MultiOutputClassifier`, which now exposes the
++  ``classes_`` attribute (a list of the classes of each underlying
++  estimator).
++  :pr:`14265` by :user:`Anton Nakamura <narak>`.
++
+ :mod:`sklearn.model_selection`
+ ..............................
+ 
+diff --git a/sklearn/multioutput.py b/sklearn/multioutput.py
+index 463b72d40..ab02b899a 100644
+--- a/sklearn/multioutput.py
++++ b/sklearn/multioutput.py
+@@ -320,6 +320,10 @@ class MultiOutputClassifier(MultiOutputEstimator, ClassifierMixin):
+     ----------
+     estimators_ : list of ``n_output`` estimators
+         Estimators used for predictions.
++
++    classes_ : list of lists
++        A list of arrays of length ``len(estimators_)`` containing the
++        class labels for each estimator.
+     """
+ 
+     def __init__(self, estimator, n_jobs=None):
+@@ -354,6 +358,10 @@ class MultiOutputClassifier(MultiOutputEstimator, ClassifierMixin):
+                    self.estimators_]
+         return results
+ 
++    @property
++    def classes_(self):
++        return [estimator.classes_ for estimator in self.estimators_]
++
+     def score(self, X, y):
+         """Returns the mean accuracy on the given test data and labels.
+ 

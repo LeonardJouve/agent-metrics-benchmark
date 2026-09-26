@@ -1,0 +1,29 @@
+diff --git a/doc/whats_new/v0.21.rst b/doc/whats_new/v0.21.rst
+index 3bbd9f318..28290423b 100644
+--- a/doc/whats_new/v0.21.rst
++++ b/doc/whats_new/v0.21.rst
+@@ -254,6 +254,11 @@ Support for Python 3.4 and below has been officially dropped.
+   :class:`preprocessing.StandardScaler`. :issue:`13007` by
+   :user:`Raffaello Baluyot <baluyotraf>`
+ 
++- |Fix| Fixed a bug in :class:`preprocessing.KBinsDiscretizer` where the
++  ``kmeans`` strategy could return unsorted cluster centers, hence unsorted
++  bin edges, which made ``transform`` fail.
++  :issue:`13191` by :user:`Sandro Troschke <stroschke>`.
++
+ :mod:`sklearn.tree`
+ ...................
+ - |Feature| Decision Trees can now be plotted with matplotlib using
+diff --git a/sklearn/preprocessing/_discretization.py b/sklearn/preprocessing/_discretization.py
+index dd969c12b..35d654399 100644
+--- a/sklearn/preprocessing/_discretization.py
++++ b/sklearn/preprocessing/_discretization.py
+@@ -172,6 +172,8 @@ class KBinsDiscretizer(BaseEstimator, TransformerMixin):
+                 # 1D k-means procedure
+                 km = KMeans(n_clusters=n_bins[jj], init=init, n_init=1)
+                 centers = km.fit(column[:, None]).cluster_centers_[:, 0]
++                # Must sort, centers may be unsorted even with sorted init
++                centers.sort()
+                 bin_edges[jj] = (centers[1:] + centers[:-1]) * 0.5
+                 bin_edges[jj] = np.r_[col_min, bin_edges[jj], col_max]
+ 

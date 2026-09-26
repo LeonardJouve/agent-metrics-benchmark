@@ -1,0 +1,50 @@
+diff --git a/doc/whatsnew/fragments/7231.bugfix b/doc/whatsnew/fragments/7231.bugfix
+new file mode 100644
+index 00000000..6b05f705
+--- /dev/null
++++ b/doc/whatsnew/fragments/7231.bugfix
+@@ -0,0 +1,5 @@
++Fix `pylint` removing the first entry of `sys.path` when it is not the
++current working directory (e.g. when pylint is run programmatically with
++`runpy`).
++
++Closes #7231
+diff --git a/pylint/__init__.py b/pylint/__init__.py
+index 9f3dd74e..cb070611 100644
+--- a/pylint/__init__.py
++++ b/pylint/__init__.py
+@@ -86,7 +86,10 @@ def modify_sys_path() -> None:
+     stdlib or pylint's own modules.
+     CPython issue: https://bugs.python.org/issue33053
+ 
+-    - Remove the first entry. This will always be either "" or the working directory
++    - Remove the first entry if it is either "", "." or the working directory.
++      It should not be removed otherwise: pylint can be imported through
++      `runpy` with a custom first entry in `sys.path` that we don't want to lose.
++      https://github.com/PyCQA/pylint/issues/7231
+     - Remove the working directory from the second and third entries
+       if PYTHONPATH includes a ":" at the beginning or the end.
+       https://github.com/PyCQA/pylint/issues/3636
+@@ -96,13 +99,18 @@ def modify_sys_path() -> None:
+       if pylint is installed in an editable configuration (as the last item).
+       https://github.com/PyCQA/pylint/issues/4161
+     """
+-    sys.path.pop(0)
+-    env_pythonpath = os.environ.get("PYTHONPATH", "")
+     cwd = os.getcwd()
+-    if env_pythonpath.startswith(":") and env_pythonpath not in (f":{cwd}", ":."):
++    if sys.path and sys.path[0] in ("", ".", cwd):
+         sys.path.pop(0)
++    env_pythonpath = os.environ.get("PYTHONPATH", "")
++    # A leading or trailing ":" in PYTHONPATH adds the working directory a
++    # second time, but never remove an entry that is not the working directory.
++    if env_pythonpath.startswith(":") and env_pythonpath not in (f":{cwd}", ":."):
++        if sys.path and sys.path[0] in ("", ".", cwd):
++            sys.path.pop(0)
+     elif env_pythonpath.endswith(":") and env_pythonpath not in (f"{cwd}:", ".:"):
+-        sys.path.pop(1)
++        if len(sys.path) > 1 and sys.path[1] in ("", ".", cwd):
++            sys.path.pop(1)
+ 
+ 
+ version = __version__

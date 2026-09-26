@@ -1,0 +1,4156 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/root/.config/mini-swe-agent/.env'
+Warning: Input is not a terminal (fd=0).
+Building agent config from specs: ['swebench.yaml', 
+'/tmp/minisweagent/override.yaml']
+
+System:
+You are a helpful assistant that can interact with a computer shell to solve 
+programming tasks.
+
+User:
+<pr_description>
+Consider the following PR description:
+InheritDocstrings metaclass doesn't work for properties
+Inside the InheritDocstrings metaclass it uses `inspect.isfunction` which 
+returns `False` for properties.
+
+</pr_description>
+
+<instructions>
+# Task Instructions
+
+## Overview
+
+You're a software engineer interacting continuously with a computer by 
+submitting commands.
+You'll be helping implement necessary changes to meet requirements in the PR 
+description.
+Your task is specifically to make changes to non-test files in the current 
+directory in order to fix the issue described in the PR description in a way 
+that is general and consistent with the codebase.
+<IMPORTANT>This is an interactive process where you will think and issue AT 
+LEAST ONE command, see the result, then think and issue your next 
+command(s).</important>
+
+For each response:
+
+1. Include a THOUGHT section explaining your reasoning and what you're trying to
+accomplish
+2. Provide one or more bash tool calls to execute
+
+## Important Boundaries
+
+- MODIFY: Regular source code files in /testbed (this is the working directory 
+for all your subsequent commands)
+- DO NOT MODIFY: Tests, configuration files (pyproject.toml, setup.cfg, etc.)
+
+## Recommended Workflow
+
+1. Analyze the codebase by finding and reading relevant files
+2. Create a script to reproduce the issue
+3. Edit the source code to resolve the issue
+4. Verify your fix works by running your script again
+5. Test edge cases to ensure your fix is robust
+
+## Command Execution Rules
+
+You are operating in an environment where
+
+1. You issue at least one command
+2. The system executes the command(s) in a subshell
+3. You see the result(s)
+4. You write your next command(s)
+
+Each response should include:
+
+1. **Reasoning text** where you explain your analysis and plan
+2. At least one tool call with your command
+
+**CRITICAL REQUIREMENTS:**
+
+- Your response SHOULD include reasoning text explaining what you're doing
+- Your response MUST include AT LEAST ONE bash tool call. You can make MULTIPLE 
+tool calls in a single response when the commands are independent (e.g., 
+searching multiple files, reading different parts of the codebase).
+- Directory or environment variable changes are not persistent. Every action is 
+executed in a new subshell.
+- However, you can prefix any action with `MY_ENV_VAR=MY_VALUE cd 
+/path/to/working/dir && ...` or write/load environment variables from files
+
+Example of a CORRECT response:
+<example_response>
+I need to understand the Builder-related code. Let me find relevant files and 
+check the project structure.
+
+[Makes multiple bash tool calls: {"command": "ls -la"}, {"command": "find src 
+-name '*.java' | grep -i builder"}, {"command": "cat README.md | head -50"}]
+</example_response>
+
+## Environment Details
+
+- You have a full Linux shell environment
+- Always use non-interactive flags (-y, -f) for commands
+- Avoid interactive tools like vi, nano, or any that require user input
+- You can use bash commands or invoke any tool that is available in the 
+environment
+- You can also create new tools or scripts to help you with the task
+- If a tool isn't available, you can also install it
+
+## Submission
+
+When you've completed your work, you MUST submit your changes as a git patch.
+Follow these steps IN ORDER, with SEPARATE commands:
+
+Step 1: Create the patch file
+Run `git diff -- path/to/file1 path/to/file2 > patch.txt` listing only the 
+source files you modified.
+Do NOT commit your changes.
+
+<IMPORTANT>
+The patch must only contain changes to the specific source files you modified to
+fix the issue.
+Do not submit file creations or changes to any of the following files:
+
+- test and reproduction files
+- helper scripts, tests, or tools that you created
+- installation, build, packaging, configuration, or setup scripts unless they 
+are directly part of the issue you were fixing (you can assume that the 
+environment is already set up for your client)
+- binary or compiled files
+</IMPORTANT>
+
+Step 2: Verify your patch
+Inspect patch.txt to confirm it only contains your intended changes and headers 
+show `--- a/` and `+++ b/` paths.
+
+Step 3: Submit (EXACT command required)
+You MUST use this EXACT command to submit:
+
+```bash
+echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT && cat patch.txt
+```
+
+If the command fails (nonzero exit status), it will not submit.
+
+<CRITICAL>
+- Creating/viewing the patch and submitting it MUST be separate commands (not 
+combined with &&).
+- If you modify patch.txt after verifying, you SHOULD verify again before 
+submitting.
+- You CANNOT continue working (reading, editing, testing) in any way on this 
+task after submitting.
+</CRITICAL>
+</instructions>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 1, $0.00):
+I'll start by exploring the codebase to find the InheritDocstrings metaclass.
+
+
+
+```
+grep -rn "InheritDocstrings" --include=*.py . | head -50
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+./astropy/config/configuration.py:23:from ..utils.misc import InheritDocstrings
+./astropy/config/configuration.py:160:class 
+ConfigItem(metaclass=InheritDocstrings):
+./astropy/constants/constant.py:12:from ..utils.misc import InheritDocstrings
+./astropy/constants/constant.py:17:class ConstantMeta(InheritDocstrings):
+./astropy/coordinates/representation.py:24:from ..utils.misc import 
+InheritDocstrings
+./astropy/coordinates/representation.py:427:class 
+MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
+./astropy/coordinates/representation.py:1934:class 
+MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
+./astropy/io/votable/tree.py:24:from ...utils.misc import InheritDocstrings
+./astropy/io/votable/tree.py:406:class Element(metaclass=InheritDocstrings):
+./astropy/modeling/core.py:39:                     InheritDocstrings, 
+OrderedDescriptorContainer,
+./astropy/modeling/core.py:78:class _ModelMeta(OrderedDescriptorContainer, 
+InheritDocstrings, abc.ABCMeta):
+./astropy/units/core.py:18:from ..utils.misc import isiterable, 
+InheritDocstrings
+./astropy/units/core.py:486:class UnitBase(metaclass=InheritDocstrings):
+./astropy/units/core.py:1730:class _UnitMetaClass(InheritDocstrings):
+./astropy/units/format/base.py:2:from ...utils.misc import InheritDocstrings
+./astropy/units/format/base.py:5:class _FormatterMeta(InheritDocstrings):
+./astropy/units/quantity.py:26:from ..utils.misc import isiterable, 
+InheritDocstrings
+./astropy/units/quantity.py:200:class Quantity(np.ndarray, 
+metaclass=InheritDocstrings):
+./astropy/utils/misc.py:33:           'JsonCustomEncoder', 'indent', 
+'InheritDocstrings',
+./astropy/utils/misc.py:497:class InheritDocstrings(type):
+./astropy/utils/misc.py:511:        >>> from astropy.utils.misc import 
+InheritDocstrings
+./astropy/utils/misc.py:512:        >>> class A(metaclass=InheritDocstrings):
+./astropy/utils/tests/test_misc.py:78:    class 
+Base(metaclass=misc.InheritDocstrings):
+./astropy/visualization/interval.py:12:from ..utils.misc import 
+InheritDocstrings
+./astropy/visualization/interval.py:21:class BaseInterval(BaseTransform, 
+metaclass=InheritDocstrings):
+./astropy/visualization/stretch.py:11:from ..utils.misc import InheritDocstrings
+./astropy/visualization/stretch.py:47:class BaseStretch(BaseTransform, 
+metaclass=InheritDocstrings):
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 2, $0.00):
+```
+sed -n 480,570p /testbed/astropy/utils/misc.py; echo ---; ls /testbed; git -C 
+/testbed log --oneline -5
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+            for match in matches:
+                mapped_matches.extend(fix(match))
+            matches = mapped_matches
+
+        matches = list(set(matches))
+        matches = sorted(matches)
+
+        if len(matches) == 1:
+            matches = matches[0]
+        else:
+            matches = (', '.join(matches[:-1]) + ' or ' +
+                       matches[-1])
+        return 'Did you mean {0}?'.format(matches)
+
+    return ''
+
+
+class InheritDocstrings(type):
+    """
+    This metaclass makes methods of a class automatically have their
+    docstrings filled in from the methods they override in the base
+    class.
+
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> class A(metaclass=InheritDocstrings):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        >>> B.wiggle.__doc__
+        u'Wiggle the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if (inspect.isfunction(val) and
+                is_public_member(key) and
+                val.__doc__ is None):
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+
+
+class OrderedDescriptor(metaclass=abc.ABCMeta):
+    """
+    Base class for descriptors whose order in the class body should be
+    preserved.  Intended for use in concert with the
+    `OrderedDescriptorContainer` metaclass.
+
+    Subclasses of `OrderedDescriptor` must define a value for a class attribute
+    called ``_class_attribute_``.  This is the name of a class attribute on the
+    *container* class for these descriptors, which will be set to an
+    `~collections.OrderedDict` at class creation time.  This
+    `~collections.OrderedDict` will contain a mapping of all class attributes
+    that were assigned instances of the `OrderedDescriptor` subclass, to the
+    instances themselves.  See the documentation for
+    `OrderedDescriptorContainer` for a concrete example.
+
+    Optionally, subclasses of `OrderedDescriptor` may define a value for a
+    class attribute called ``_name_attribute_``.  This should be the name of
+    an attribute on instances of the subclass.  When specified, during
+    creation of a class containing these descriptors, the name attribute on
+    each instance will be set to the name of the class attribute it was
+    assigned to on the class.
+
+    .. note::
+
+        Although this class is intended for use with *descriptors* (i.e.
+        classes that define any of the ``__get__``, ``__set__``, or
+        ``__delete__`` magic methods), this base class is not itself a
+        descriptor, and technically this could be used for classes that are
+---
+CHANGES.rst
+CITATION
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+LICENSE.rst
+MANIFEST.in
+README.rst
+__pycache__
+ah_bootstrap.py
+appveyor.yml
+astropy
+astropy.egg-info
+astropy_helpers
+build
+cextern
+conftest.py
+docs
+examples
+ez_setup.py
+licenses
+pip-requirements
+pip-requirements-dev
+pip-requirements-doc
+readthedocs.yml
+setup.cfg
+setup.py
+static
+e4f19c106 SWE-bench
+26d147868 Merge pull request #7098 from lpsinger/wcsaxes-zorder
+52a19f071 Merge pull request #7085 from sushobhana/fixing_fitsdiff
+cb9a2ffeb Merge pull request #7103 from ananyashreyjain/patch-7
+5de76ecea Merge pull request #7124 from astrofrog/remove-templates
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 3, $0.00):
+```
+sed -n 50,140p /testbed/astropy/utils/tests/test_misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+
+
+def test_JsonCustomEncoder():
+    from ... import units as u
+    assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == '[0, 1, 2]'
+    assert json.dumps(1+2j, cls=misc.JsonCustomEncoder) == '[1.0, 2.0]'
+    assert json.dumps(set([1, 2, 1]), cls=misc.JsonCustomEncoder) == '[1, 2]'
+    assert json.dumps(b'hello world \xc3\x85',
+                      cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
+    assert json.dumps({1: 2},
+                      cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+    assert json.dumps({1: u.m}, cls=misc.JsonCustomEncoder) == '{"1": "m"}'
+    # Quantities
+    tmp = json.dumps({'a': 5*u.cm}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp)
+    tmpd = {"a": {"unit": "cm", "value": 5.0}}
+    assert newd == tmpd
+    tmp2 = json.dumps({'a': np.arange(2)*u.cm}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp2)
+    tmpd = {"a": {"unit": "cm", "value": [0., 1.]}}
+    assert newd == tmpd
+    tmp3 = json.dumps({'a': np.arange(2)*u.erg/u.s}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp3)
+    tmpd = {"a": {"unit": "erg / s", "value": [0., 1.]}}
+    assert newd == tmpd
+
+
+def test_inherit_docstrings():
+    class Base(metaclass=misc.InheritDocstrings):
+        def __call__(self, *args):
+            "FOO"
+            pass
+
+    class Subclass(Base):
+        def __call__(self, *args):
+            pass
+
+    if Base.__call__.__doc__ is not None:
+        # TODO: Maybe if __doc__ is None this test should be skipped instead?
+        assert Subclass.__call__.__doc__ == "FOO"
+
+
+def test_set_locale():
+    # First, test if the required locales are available
+    current = locale.setlocale(locale.LC_ALL)
+    try:
+        locale.setlocale(locale.LC_ALL, str('en_US'))
+        locale.setlocale(locale.LC_ALL, str('de_DE'))
+    except locale.Error as e:
+        pytest.skip('Locale error: {}'.format(e))
+    finally:
+        locale.setlocale(locale.LC_ALL, current)
+
+    date = datetime(2000, 10, 1, 0, 0, 0)
+    day_mon = date.strftime('%a, %b')
+
+    with misc.set_locale('en_US'):
+        assert date.strftime('%a, %b') == 'Sun, Oct'
+
+    with misc.set_locale('de_DE'):
+        assert date.strftime('%a, %b') == 'So, Okt'
+
+    # Back to original
+    assert date.strftime('%a, %b') == day_mon
+
+    with misc.set_locale(current):
+        assert date.strftime('%a, %b') == day_mon
+
+
+def test_check_broadcast():
+    assert misc.check_broadcast((10, 1), (3,)) == (10, 3)
+    assert misc.check_broadcast((10, 1), (3,), (4, 1, 1, 3)) == (4, 1, 10, 3)
+    with pytest.raises(ValueError):
+        misc.check_broadcast((10, 2), (3,))
+
+    with pytest.raises(ValueError):
+        misc.check_broadcast((10, 1), (3,), (4, 1, 2, 3))
+
+
+def test_dtype_bytes_or_chars():
+    assert misc.dtype_bytes_or_chars(np.dtype(np.float64)) == 8
+    assert misc.dtype_bytes_or_chars(np.dtype(object)) is None
+    assert misc.dtype_bytes_or_chars(np.dtype(np.int32)) == 4
+    assert misc.dtype_bytes_or_chars(np.array(b'12345').dtype) == 5
+    assert misc.dtype_bytes_or_chars(np.array(u'12345').dtype) == 5
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 4, $0.00):
+Let me look at the exact metaclass code and check whether there are related 
+decorators elsewhere.
+
+
+
+```
+cd /testbed && grep -rn "inherit_docstrings\|InheritDocstrings" 
+astropy/utils/decorators.py | head; sed -n 1,40p astropy/utils/misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+A "grab bag" of relatively small general-purpose utilities that don't have
+a clear module/package to live in.
+"""
+
+
+
+import abc
+import contextlib
+import difflib
+import inspect
+import json
+import os
+import signal
+import sys
+import traceback
+import unicodedata
+import locale
+import threading
+import re
+import urllib.request
+
+from itertools import zip_longest
+from contextlib import contextmanager
+from collections import defaultdict, OrderedDict
+
+
+
+__all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
+           'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
+           'JsonCustomEncoder', 'indent', 'InheritDocstrings',
+           'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
+           'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
+           'dtype_bytes_or_chars']
+
+
+def isiterable(obj):
+    """Returns `True` if the given object is iterable."""
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 5, $0.00):
+Now let me write a reproduction script to confirm the issue:
+
+
+
+```
+cd /testbed && cat > /tmp/repro.py << 'EOF'
+from astropy.utils import misc
+
+
+class Base(metaclass=misc.InheritDocstrings):
+    def __call__(self, *args):
+        "FOO"
+        pass
+
+    @property
+    def bar(self):
+        "BAR"
+        return 1
+
+    @property
+    def baz(self):
+        "BAZ"
+        return 1
+
+    @baz.setter
+    def baz(self, value):
+        "BAZSET"
+
+
+class Subclass(Base):
+    def __call__(self, *args):
+        pass
+
+    @property
+    def bar(self):
+        return 2
+
+    @property
+    def baz(self):
+        return 2
+
+    @baz.setter
+    def baz(self, value):
+        pass
+
+
+print("call doc:", repr(Subclass.__call__.__doc__))
+print("bar doc:", repr(Subclass.bar.__doc__))
+print("baz doc:", repr(Subclass.baz.__doc__))
+print("baz fset doc:", repr(Subclass.baz.fset.__doc__))
+s = Subclass()
+print("instance bar:", s.bar, "instance baz:", s.baz)
+s.baz = 5
+print("after set:", s.baz)
+EOF
+python /tmp/repro.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+call doc: 'FOO'
+bar doc: None
+baz doc: None
+baz fset doc: None
+instance bar: 2 instance baz: 2
+after set: 2
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 6, $0.00):
+Now I understand the issue. Let me look at the full metaclass code region and 
+check what Python's property allows:
+
+
+
+```
+cd /testbed && python -c "
+p = property(lambda self: 1)
+try:
+    p.__doc__ = 'x'
+except Exception as e:
+    print('ERR', type(e).__name__, e)
+q = property(p.fget, p.fset, p.fdel, 'doc here')
+print(repr(q.__doc__))
+import types
+print(isinstance(p, property), isinstance(p, types.FunctionType))
+class CM:
+    @classmethod
+    def f(cls): pass
+    @staticmethod
+    def g(): pass
+print(type(CM.__dict__['f']), repr(CM.__dict__['f'].__doc__), 
+repr(CM.__dict__['f'].__func__.__doc__))
+print(type(CM.__dict__['g']), repr(CM.__dict__['g'].__doc__))
+print(repr(CM.f.__doc__))
+"
+
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+'doc here'
+True False
+<class 'classmethod'> 'classmethod(function) -> method\n\nConvert a function to 
+be a class method.\n\nA class method receives the class as implicit first 
+argument,\njust like an instance method receives the instance.\nTo declare a 
+class method, use this idiom:\n\n  class C:\n      @classmethod\n      def 
+f(cls, arg1, arg2, ...):\n          ...\n\nIt can be called either on the class 
+(e.g. C.f()) or on an instance\n(e.g. C().f()).  The instance is ignored except 
+for its class.\nIf a class method is called for a derived class, the derived 
+class\nobject is passed as the implied first argument.\n\nClass methods are 
+different than C++ or Java static methods.\nIf you want those, see the 
+staticmethod builtin.' None
+<class 'staticmethod'> 'staticmethod(function) -> method\n\nConvert a function 
+to be a static method.\n\nA static method does not receive an implicit first 
+argument.\nTo declare a static method, use this idiom:\n\n     class C:\n       
+@staticmethod\n         def f(arg1, arg2, ...):\n             ...\n\nIt can be 
+called either on the class (e.g. C.f()) or on an instance\n(e.g. C().f()).  The 
+instance is ignored except for its class.\n\nStatic methods in Python are 
+similar to those found in Java or C++.\nFor a more advanced concept, see the 
+classmethod builtin.'
+None
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 7, $0.00):
+```
+cd /testbed && python -VV && python -c "
+p = property(lambda self: 1)
+p.__doc__ = 'x'
+print(repr(p.__doc__), repr(p.fget.__doc__))
+"
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+Python 3.6.13 :: Anaconda, Inc.
+'x' None
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 8, $0.00):
+```
+cd /testbed && python -VV; grep -n "class lazyproperty\|class 
+classproperty\|class doc_property" astropy/utils/decorators.py 
+astropy/coordinates/attributes.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+Python 3.6.13 :: Anaconda, Inc.
+astropy/utils/decorators.py:496:class classproperty(property):
+astropy/utils/decorators.py:663:class lazyproperty(property):
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 9, $0.00):
+```
+cd /testbed && sed -n 490,560p astropy/utils/decorators.py; echo =====; sed -n 
+655,760p astropy/utils/decorators.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+    return decorator
+
+
+# TODO: This can still be made to work for setters by implementing an
+# accompanying metaclass that supports it; we just don't need that right this
+# second
+class classproperty(property):
+    """
+    Similar to `property`, but allows class-level properties.  That is,
+    a property whose getter is like a `classmethod`.
+
+    The wrapped method may explicitly use the `classmethod` decorator (which
+    must become before this decorator), or the `classmethod` may be omitted
+    (it is implicit through use of this decorator).
+
+    .. note::
+
+        classproperty only works for *read-only* properties.  It does not
+        currently allow writeable/deleteable properties, due to subtleties of 
+how
+        Python descriptors work.  In order to implement such properties on a 
+class
+        a metaclass for that class must be implemented.
+
+    Parameters
+    ----------
+    fget : callable
+        The function that computes the value of this property (in particular,
+        the function when this is used as a decorator) a la `property`.
+
+    doc : str, optional
+        The docstring for the property--by default inherited from the getter
+        function.
+
+    lazy : bool, optional
+        If True, caches the value returned by the first call to the getter
+        function, so that it is only called once (used for lazy evaluation
+        of an attribute).  This is analogous to `lazyproperty`.  The ``lazy``
+        argument can also be used when `classproperty` is used as a decorator
+        (see the third example below).  When used in the decorator syntax this
+        *must* be passed in as a keyword argument.
+
+    Examples
+    --------
+
+    ::
+
+        >>> class Foo:
+        ...     _bar_internal = 1
+        ...     @classproperty
+        ...     def bar(cls):
+        ...         return cls._bar_internal + 1
+        ...
+        >>> Foo.bar
+        2
+        >>> foo_instance = Foo()
+        >>> foo_instance.bar
+        2
+        >>> foo_instance._bar_internal = 2
+        >>> foo_instance.bar  # Ignores instance attributes
+        2
+
+    As previously noted, a `classproperty` is limited to implementing
+    read-only attributes::
+
+        >>> class Foo:
+        ...     _bar_internal = 1
+        ...     @classproperty
+        ...     def bar(cls):
+        ...         return cls._bar_internal
+        ...     @bar.setter
+        ...     def bar(cls, value):
+        ...         cls._bar_internal = value
+=====
+
+        @functools.wraps(orig_fget)
+        def fget(obj):
+            return orig_fget(obj.__class__)
+
+        return fget
+
+
+class lazyproperty(property):
+    """
+    Works similarly to property(), but computes the value only once.
+
+    This essentially memorizes the value of the property by storing the result
+    of its computation in the ``__dict__`` of the object instance.  This is
+    useful for computing the value of some property that should otherwise be
+    invariant.  For example::
+
+        >>> class LazyTest:
+        ...     @lazyproperty
+        ...     def complicated_property(self):
+        ...         print('Computing the value for complicated_property...')
+        ...         return 42
+        ...
+        >>> lt = LazyTest()
+        >>> lt.complicated_property
+        Computing the value for complicated_property...
+        42
+        >>> lt.complicated_property
+        42
+
+    As the example shows, the second time ``complicated_property`` is accessed,
+    the ``print`` statement is not executed.  Only the return value from the
+    first access off ``complicated_property`` is returned.
+
+    By default, a setter and deleter are used which simply overwrite and
+    delete, respectively, the value stored in ``__dict__``. Any user-specified
+    setter or deleter is executed before executing these default actions.
+    The one exception is that the default setter is not run if the user setter
+    already sets the new value in ``__dict__`` and returns that value and the
+    returned value is not ``None``.
+
+    Adapted from the recipe at
+    http://code.activestate.com/recipes/363602-lazy-property-evaluation
+    """
+
+    def __init__(self, fget, fset=None, fdel=None, doc=None):
+        super().__init__(fget, fset, fdel, doc)
+        self._key = self.fget.__name__
+
+    def __get__(self, obj, owner=None):
+        try:
+            return obj.__dict__[self._key]
+        except KeyError:
+            val = self.fget(obj)
+            obj.__dict__[self._key] = val
+            return val
+        except AttributeError:
+            if obj is None:
+                return self
+            raise
+
+    def __set__(self, obj, val):
+        obj_dict = obj.__dict__
+        if self.fset:
+            ret = self.fset(obj, val)
+            if ret is not None and obj_dict.get(self._key) is ret:
+                # By returning the value set the setter signals that it took
+                # over setting the value in obj.__dict__; this mechanism allows
+                # it to override the input value
+                return
+        obj_dict[self._key] = val
+
+    def __delete__(self, obj):
+        if self.fdel:
+            self.fdel(obj)
+        if self._key in obj.__dict__:
+            del obj.__dict__[self._key]
+
+
+class sharedmethod(classmethod):
+    """
+    This is a method decorator that allows both an instancemethod and a
+    `classmethod` to share the same name.
+
+    When using `sharedmethod` on a method defined in a class's body, it
+    may be called on an instance, or on a class.  In the former case it
+    behaves like a normal instance method (a reference to the instance is
+    automatically passed as the first ``self`` argument of the method)::
+
+        >>> class Example:
+        ...     @sharedmethod
+        ...     def identify(self, *args):
+        ...         print('self was', self)
+        ...         print('additional args were', args)
+        ...
+        >>> ex = Example()
+        >>> ex.identify(1, 2)
+        self was <astropy.utils.decorators.Example object at 0x...>
+        additional args were (1, 2)
+
+    In the latter case, when the `sharedmethod` is called directly from a
+    class, it behaves like a `classmethod`::
+
+        >>> Example.identify(3, 4)
+        self was <class 'astropy.utils.decorators.Example'>
+        additional args were (3, 4)
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 10, $0.00):
+Now let me implement the fix in the `InheritDocstrings` metaclass:
+
+
+
+```
+cd /testbed && sed -n 495,538p astropy/utils/misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+
+
+class InheritDocstrings(type):
+    """
+    This metaclass makes methods of a class automatically have their
+    docstrings filled in from the methods they override in the base
+    class.
+
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> class A(metaclass=InheritDocstrings):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        >>> B.wiggle.__doc__
+        u'Wiggle the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if (inspect.isfunction(val) and
+                is_public_member(key) and
+                val.__doc__ is None):
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 11, $0.00):
+```
+cd /testbed && python -c "
+from astropy.utils.decorators import lazyproperty, classproperty
+def f(self): pass
+p = property(f)
+print('1:', repr(p.__doc__))
+p.__doc__ = 'X'
+print('2:', repr(p.__doc__))
+lp = lazyproperty(f)
+print('3:', repr(lp.__doc__), repr(lp._key))
+lp.__doc__ = 'Y'
+print('4:', repr(lp.__doc__), type(lp).__name__, repr(lp._key))
+class C:
+    @lazyproperty
+    def z(self):
+        'Z'
+        return 1
+    @classproperty
+    def w(cls):
+        'W'
+        return 2
+print('5:', repr(C.__dict__['z'].__doc__), repr(C.w), repr(C.z))
+c = C(); print(c.z, C.w)
+"
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+1: None
+2: 'X'
+3: None 'f'
+4: 'Y' lazyproperty 'f'
+5: 'Z' 2 <astropy.utils.decorators.lazyproperty object at 0x7b312163ce28>
+1 2
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 12, $0.00):
+Setting `__doc__` works and preserves the property subclass type. Now let me 
+apply the fix:
+
+
+
+```
+cd /testbed && cat > /tmp/patch.py << 'PYEOF'
+import io
+
+path = 'astropy/utils/misc.py'
+src = io.open(path, encoding='utf-8').read()
+
+old_doc = '''    This metaclass makes methods of a class automatically have 
+their
+    docstrings filled in from the methods they override in the base
+    class.
+
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> class A(metaclass=InheritDocstrings):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        >>> B.wiggle.__doc__
+        u'Wiggle the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if (inspect.isfunction(val) and
+                is_public_member(key) and
+                val.__doc__ is None):
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+'''
+
+new_doc = '''    This metaclass makes methods of a class automatically have 
+their
+    docstrings filled in from the methods they override in the base
+    class.  Properties (and other `property` subclasses) are handled in
+    the same way.
+
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> class A(metaclass=InheritDocstrings):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        >>> B.wiggle.__doc__
+        u'Wiggle the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        def find_inherited_member(key, kinds):
+            """
+            Look up ``key`` in the base classes of ``cls`` - following the
+            same order in which methods are normally resolved - and return
+            the first match which is one of the given ``kinds`` of objects
+            (`None` if there is no such member).
+            """
+            for base in cls.__mro__[1:]:
+                member = getattr(base, key, None)
+                if isinstance(member, kinds):
+                    return member
+
+        for key, val in dct.items():
+            if not is_public_member(key) or val.__doc__ is not None:
+                continue
+
+            if inspect.isfunction(val):
+                super_method = find_inherited_member(
+                    key, (types.FunctionType, types.MethodType, property))
+                if super_method is not None:
+                    val.__doc__ = super_method.__doc__
+
+            elif isinstance(val, property):
+                super_property = find_inherited_member(
+                    key, (property, types.FunctionType, types.MethodType))
+                if super_property is not None:
+                    # The docstring of a property is not necessarily mutable,
+                    # and rebuilding the property would not be an option for
+                    # subclasses of it (e.g. `~astropy.utils.lazyproperty`),
+                    # so the docstring is simply inherited here.
+                    val.__doc__ = super_property.__doc__
+
+        super().__init__(name, bases, dct)
+'''
+
+assert old_doc in src
+src = src.replace(old_doc, new_doc)
+
+old_imports = """import abc
+import contextlib
+import difflib
+import inspect
+"""
+new_imports = """import abc
+import contextlib
+import difflib
+import inspect
+"""
+assert old_imports in src
+
+old_imports2 = """import unicodedata
+import locale
+"""
+new_imports2 = """import unicodedata
+import locale
+import types
+"""
+assert old_imports2 in src
+src = src.replace(old_imports2, new_imports2, 1)
+
+io.open(path, 'w', encoding='utf-8').write(src)
+print('done')
+PYEOF
+python /tmp/patch.py && sed -n 1,30p astropy/utils/misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+done
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+A "grab bag" of relatively small general-purpose utilities that don't have
+a clear module/package to live in.
+"""
+
+
+
+import abc
+import contextlib
+import difflib
+import inspect
+import json
+import os
+import signal
+import sys
+import traceback
+import unicodedata
+import locale
+import types
+import threading
+import re
+import urllib.request
+
+from itertools import zip_longest
+from contextlib import contextmanager
+from collections import defaultdict, OrderedDict
+
+
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 13, $0.00):
+Let me refine the implementation to be more minimal and consistent with the 
+original code style (and drop the extra import):
+
+
+
+```
+cd /testbed && git checkout astropy/utils/misc.py && sed -n 519,545p 
+astropy/utils/misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+Updated 1 path from the index
+        >>> B.wiggle.__doc__
+        u'Wiggle the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if (inspect.isfunction(val) and
+                is_public_member(key) and
+                val.__doc__ is None):
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+
+
+class OrderedDescriptor(metaclass=abc.ABCMeta):
+    """
+    Base class for descriptors whose order in the class body should be
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 14, $0.00):
+```
+cd /testbed && python -m pytest --doctest-modules astropy/utils/misc.py -q -k 
+InheritDocstrings 2>&1 | tail -20
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+513         ...     def wiggle(self):
+514         ...         "Wiggle the thingamajig"
+515         ...         pass
+516         >>> class B(A):
+517         ...     def wiggle(self):
+518         ...         pass
+519         >>> B.wiggle.__doc__
+Expected:
+    u'Wiggle the thingamajig'
+Got:
+    'Wiggle the thingamajig'
+
+/testbed/astropy/utils/misc.py:519: DocTestFailure
+=============================== warnings summary ===============================
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+============================== 2 tests deselected ==============================
+1 failed, 2 deselected, 1 warnings in 0.01 seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 15, $0.00):
+Now let me write the fix:
+
+
+
+```
+cd /testbed && python - << 'PYEOF'
+import io
+
+path = 'astropy/utils/misc.py'
+src = io.open(path, encoding='utf-8').read()
+
+old = '''class InheritDocstrings(type):
+    """
+    This metaclass makes methods of a class automatically have their
+    docstrings filled in from the methods they override in the base
+    class.
+
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> class A(metaclass=InheritDocstrings):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        >>> B.wiggle.__doc__
+        u\'Wiggle the thingamajig\'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith(\'__\') and key.endswith(\'__\')
+                 and len(key) > 4) or
+                not key.startswith(\'_\'))
+
+        for key, val in dct.items():
+            if (inspect.isfunction(val) and
+                is_public_member(key) and
+                val.__doc__ is None):
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+'''
+
+new = '''class InheritDocstrings(type):
+    """
+    This metaclass makes methods and properties of a class automatically
+    have their docstrings filled in from the methods or properties they
+    override in the base class.
+
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> class A(metaclass=InheritDocstrings):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        ...     @property
+        ...     def wobble(self):
+        ...         "Wobble the thingamajig"
+        ...         return 1
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        ...     @property
+        ...     def wobble(self):
+        ...         return 2
+        >>> B.wiggle.__doc__
+        \'Wiggle the thingamajig\'
+        >>> B.wobble.__doc__
+        \'Wobble the thingamajig\'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith(\'__\') and key.endswith(\'__\')
+                 and len(key) > 4) or
+                not key.startswith(\'_\'))
+
+        def find_inherited_docstring(key, super_types):
+            """
+            Return the docstring to inherit from the base classes for the
+            member called ``key``, looking for the first member of one of
+            the ``super_types`` types, in the same way as methods are
+            normally resolved in Python.
+            """
+            for base in cls.__mro__[1:]:
+                super_member = getattr(base, key, None)
+                if isinstance(super_member, super_types):
+                    return super_member.__doc__
+
+        for key, val in dct.items():
+            if not is_public_member(key):
+                continue
+
+            if inspect.isfunction(val) and val.__doc__ is None:
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+            elif isinstance(val, property) and val.__doc__ is None:
+                # Properties are not caught by ``inspect.isfunction`` above,
+                # and their docstring may come either from the property
+                # itself or from the getter function.  Since the docstring of
+                # a property can be assigned to (unlike the ``property``
+                # object itself, which would have to be replaced -- losing the
+                # type for subclasses such as `~astropy.utils.lazyproperty`),
+                # it is simply filled in here.
+                for base in cls.__mro__[1:]:
+                    super_property = getattr(base, key, None)
+                    if isinstance(super_property, property):
+                        docstring = super_property.__doc__
+                        if docstring is None and super_property.fget is not 
+None:
+                            docstring = super_property.fget.__doc__
+                        if docstring is not None:
+                            val.__doc__ = docstring
+                            break
+
+        super().__init__(name, bases, dct)
+'''
+
+assert old in src
+src = src.replace(old, new)
+io.open(path, 'w', encoding='utf-8').write(src)
+print("ok")
+PYEOF
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+ok
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 16, $0.00):
+Let me clean up the implementation (remove the leftover unused helper and 
+simplify):
+
+
+
+```
+cd /testbed && sed -n 495,575p astropy/utils/misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+
+
+class InheritDocstrings(type):
+    """
+    This metaclass makes methods and properties of a class automatically
+    have their docstrings filled in from the methods or properties they
+    override in the base class.
+
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> class A(metaclass=InheritDocstrings):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        ...     @property
+        ...     def wobble(self):
+        ...         "Wobble the thingamajig"
+        ...         return 1
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        ...     @property
+        ...     def wobble(self):
+        ...         return 2
+        >>> B.wiggle.__doc__
+        'Wiggle the thingamajig'
+        >>> B.wobble.__doc__
+        'Wobble the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        def find_inherited_docstring(key, super_types):
+            """
+            Return the docstring to inherit from the base classes for the
+            member called ``key``, looking for the first member of one of
+            the ``super_types`` types, in the same way as methods are
+            normally resolved in Python.
+            """
+            for base in cls.__mro__[1:]:
+                super_member = getattr(base, key, None)
+                if isinstance(super_member, super_types):
+                    return super_member.__doc__
+
+        for key, val in dct.items():
+            if not is_public_member(key):
+                continue
+
+            if inspect.isfunction(val) and val.__doc__ is None:
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+            elif isinstance(val, property) and val.__doc__ is None:
+                # Properties are not caught by ``inspect.isfunction`` above,
+                # and their docstring may come either from the property
+                # itself or from the getter function.  Since the docstring of
+                # a property can be assigned to (unlike the ``property``
+                # object itself, which would have to be replaced -- losing the
+                # type for subclasses such as `~astropy.utils.lazyproperty`),
+                # it is simply filled in here.
+                for base in cls.__mro__[1:]:
+                    super_property = getattr(base, key, None)
+                    if isinstance(super_property, property):
+                        docstring = super_property.__doc__
+                        if docstring is None and super_property.fget is not 
+None:
+                            docstring = super_property.fget.__doc__
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 17, $0.00):
+```
+cd /testbed && python - << 'PYEOF'
+import io, re
+
+path = 'astropy/utils/misc.py'
+src = io.open(path, encoding='utf-8').read()
+
+start = src.index('    def __init__(cls, name, bases, dct):\n        def 
+is_public_member(key):')
+end_marker = '        super().__init__(name, bases, dct)\n'
+end = src.index(end_marker, start) + len(end_marker)
+
+new = '''    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if not is_public_member(key):
+                continue
+
+            if inspect.isfunction(val) and val.__doc__ is None:
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+            elif isinstance(val, property) and val.__doc__ is None:
+                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  Note that the docstring of a property can be
+                # assigned to, which avoids having to replace the property
+                # itself (and thus keeps its type intact, which may be that of
+                # a subclass of ``property`` such as
+                # `~astropy.utils.lazyproperty`).
+                for base in cls.__mro__[1:]:
+                    super_property = getattr(base, key, None)
+                    if isinstance(super_property, property):
+                        val.__doc__ = super_property.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+'''
+
+src = src[:start] + new + src[end:]
+io.open(path, 'w', encoding='utf-8').write(src)
+print('ok')
+PYEOF
+sed -n 496,565p astropy/utils/misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+ok
+
+class InheritDocstrings(type):
+    """
+    This metaclass makes methods and properties of a class automatically
+    have their docstrings filled in from the methods or properties they
+    override in the base class.
+
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> class A(metaclass=InheritDocstrings):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        ...     @property
+        ...     def wobble(self):
+        ...         "Wobble the thingamajig"
+        ...         return 1
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        ...     @property
+        ...     def wobble(self):
+        ...         return 2
+        >>> B.wiggle.__doc__
+        'Wiggle the thingamajig'
+        >>> B.wobble.__doc__
+        'Wobble the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if not is_public_member(key):
+                continue
+
+            if inspect.isfunction(val) and val.__doc__ is None:
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+            elif isinstance(val, property) and val.__doc__ is None:
+                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  Note that the docstring of a property can be
+                # assigned to, which avoids having to replace the property
+                # itself (and thus keeps its type intact, which may be that of
+                # a subclass of ``property`` such as
+                # `~astropy.utils.lazyproperty`).
+                for base in cls.__mro__[1:]:
+                    super_property = getattr(base, key, None)
+                    if isinstance(super_property, property):
+                        val.__doc__ = super_property.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 18, $0.00):
+Now let's test the fix:
+
+
+
+```
+cd /testbed && python /tmp/repro.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+call doc: 'FOO'
+bar doc: 'BAR'
+baz doc: 'BAZ'
+baz fset doc: None
+instance bar: 2 instance baz: 2
+after set: 2
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 19, $0.00):
+Let me run the existing tests and the doctest:
+
+
+
+```
+cd /testbed && python -m pytest astropy/utils/tests/test_misc.py -q 2>&1 | tail 
+-5; echo "=== doctests ==="; python -m pytest --doctest-modules 
+astropy/utils/misc.py -q 2>&1 | tail -8
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+8 passed, 1 skipped, 1 warnings in 0.08 seconds
+=== doctests ===
+
+/testbed/astropy/utils/misc.py:753: DocTestFailure
+=============================== warnings summary ===============================
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+1 failed, 2 passed, 1 warnings in 0.07 seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 20, $0.00):
+```
+cd /testbed && python -m pytest --doctest-modules astropy/utils/misc.py -q 2>&1 
+| head -40
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+..F                                                                      [100%]
+=================================== FAILURES ===================================
+___________ [doctest] astropy.utils.misc.OrderedDescriptorContainer ____________
+744         >>> p2 = Point2D('a', 'b')  # doctest: +IGNORE_EXCEPTION_DETAIL
+745         Traceback (most recent call last):
+746             ...
+747         ValueError: Point2D.x must be of type (float, int>)
+748 
+749     We see that ``TypedAttribute`` works more or less as advertised, but
+750     there's nothing special about that.  Let's see what
+751     `OrderedDescriptorContainer` did for us::
+752 
+753         >>> Point2D.typed_attributes
+Expected:
+    OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
+    ('y', <TypedAttribute(name=y, type=(float, int))>)])
+Got:
+    OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>), ('y', 
+<TypedAttribute(name=y, type=(float, int))>)])
+
+/testbed/astropy/utils/misc.py:753: DocTestFailure
+=============================== warnings summary ===============================
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+1 failed, 2 passed, 1 warnings in 0.08 seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 21, $0.00):
+The remaining failure is pre-existing and unrelated. Now let's check for 
+regressions in modules that use this metaclass:
+
+
+
+```
+cd /testbed && timeout 3000 python -m pytest astropy/units astropy/modeling -q 
+-x 2>&1 | tail -8
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+
+astropy/units/tests/test_quantity_ufuncs.py:77: AssertionError
+=============================== warnings summary ===============================
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+1 failed, 1390 passed, 5 skipped, 6 xfailed, 1 warnings in 4.11 seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 22, $0.00):
+```
+cd /testbed && sed -n 60,90p astropy/units/tests/test_quantity_ufuncs.py; echo 
+====; timeout 600 python -m pytest astropy/units/tests/test_quantity_ufuncs.py 
+-q 2>&1 | tail -25
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+        all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
+                             if type(ufunc) == np.ufunc])
+        all_extern_ufuncs |= all_np_ufuncs
+        from .. import quantity_helper as qh
+
+        all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
+                        set(qh.UFUNC_HELPERS.keys()))
+
+        # Ignore possible non-numpy ufuncs; for scipy in particular, we have
+        # support for some, but for others it still has to be decided whether
+        # we can support them or not.
+        if HAS_SCIPY:
+            import scipy.special as sps
+            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values()
+                                  if type(ufunc) == np.ufunc])
+            all_q_ufuncs -= all_sps_ufuncs
+
+        assert all_extern_ufuncs - all_q_ufuncs == set([])
+        assert all_q_ufuncs - all_extern_ufuncs == set([])
+
+
+class TestQuantityTrigonometricFuncs:
+    """
+    Test trigonometric functions
+    """
+    @pytest.mark.parametrize('tc', (
+        testcase(
+            f=np.sin,
+            q_in=(30. * u.degree, ),
+            q_out=(0.5*u.dimensionless_unscaled, )
+        ),
+====
+    
+        # Ignore possible non-numpy ufuncs; for scipy in particular, we have
+        # support for some, but for others it still has to be decided whether
+        # we can support them or not.
+        if HAS_SCIPY:
+            import scipy.special as sps
+            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values()
+                                  if type(ufunc) == np.ufunc])
+            all_q_ufuncs -= all_sps_ufuncs
+    
+>       assert all_extern_ufuncs - all_q_ufuncs == set([])
+E       AssertionError: assert {<ufunc 'matmul'>} == set()
+E         Extra items in the left set:
+E         <ufunc 'matmul'>
+E         Full diff:
+E         - {<ufunc 'matmul'>}
+E         + set()
+
+astropy/units/tests/test_quantity_ufuncs.py:77: AssertionError
+=============================== warnings summary ===============================
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+1 failed, 179 passed, 3 skipped, 1 warnings in 0.20 seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 23, $0.00):
+```
+cd /testbed && git stash && timeout 600 python -m pytest 
+astropy/units/tests/test_quantity_ufuncs.py -q 2>&1 | tail -3; git stash pop
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+Saved working directory and index state WIP on main: e4f19c106 SWE-bench
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+1 failed, 179 passed, 3 skipped, 1 warnings in 0.19 seconds
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   astropy/utils/misc.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Dropped refs/stash@{0} (44762c66586eef78b59d5420f1e78ba877843d09)
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 24, $0.00):
+```
+cd /testbed && timeout 3000 python -m pytest astropy/units astropy/modeling 
+astropy/config astropy/utils -q 2>&1 | tail -6
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+=============================== warnings summary ===============================
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+269 failed, 2377 passed, 234 skipped, 6 xfailed, 1 warnings in 29.84 seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 25, $0.00):
+```
+cd /testbed && timeout 3000 python -m pytest astropy/units astropy/modeling 
+astropy/config astropy/utils -q 2>&1 | grep -E "^(FAILED|astropy.*(FAIL|ERROR))"
+| head -20; echo "=== summary ==="; timeout 3000 python -m pytest astropy/units 
+astropy/modeling astropy/config astropy/utils -q 2>&1 | grep -E "_____.*_____" |
+head -20
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+=== summary ===
+_______________________ TestUfuncCoverage.test_coverage ________________________
+_______________ [doctest] astropy.modeling.blackbody.BlackBody1D _______________
+_________________ [doctest] astropy.modeling.core.custom_model _________________
+_________________ [doctest] astropy.modeling.mappings.Identity _________________
+_________________ [doctest] astropy.modeling.mappings.Mapping __________________
+_________________ TestBlackbody1D.test_evaluate[temperature0] __________________
+_________________ TestBlackbody1D.test_evaluate[temperature1] __________________
+________________ test_two_model_class_arithmetic_1d[expr0-5.0] _________________
+________________ test_two_model_class_arithmetic_1d[expr1--1.0] ________________
+________________ test_two_model_class_arithmetic_1d[expr2-6.0] _________________
+_________ test_two_model_class_arithmetic_1d[expr3-0.6666666666666666] _________
+________________ test_two_model_class_arithmetic_1d[expr4-8.0] _________________
+_______________ test_two_model_instance_arithmetic_1d[expr0-5.0] _______________
+______________ test_two_model_instance_arithmetic_1d[expr1--1.0] _______________
+_______________ test_two_model_instance_arithmetic_1d[expr2-6.0] _______________
+_______ test_two_model_instance_arithmetic_1d[expr3-0.6666666666666666] ________
+_______________ test_two_model_instance_arithmetic_1d[expr4-8.0] _______________
+________________ test_two_model_mixed_arithmetic_1d[expr0-5.0] _________________
+________________ test_two_model_mixed_arithmetic_1d[expr1--1.0] ________________
+________________ test_two_model_mixed_arithmetic_1d[expr2-6.0] _________________
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 26, $0.00):
+```
+cd /testbed && timeout 3000 python -m pytest astropy/units astropy/modeling 
+astropy/config astropy/utils -q 2>&1 | grep -E "______.*_____" | sed 's/ /_/g' |
+sort > /tmp/after.txt; git stash -q; timeout 3000 python -m pytest astropy/units
+astropy/modeling astropy/config astropy/utils -q 2>&1 | grep -E "______.*_____" 
+| sed 's/ /_/g' | sort > /tmp/before.txt; git stash pop -q; wc -l 
+/tmp/before.txt /tmp/after.txt; diff /tmp/before.txt /tmp/after.txt | head -40
+```
+
+Tool:
+<exception>An error occurred while executing the command: Command 'cd /testbed 
+&& timeout 3000 python -m pytest astropy/units astropy/modeling astropy/config 
+astropy/utils -q 2>&1 | grep -E "______.*_____" | sed 's/ /_/g' | sort > 
+/tmp/after.txt; git stash -q; timeout 3000 python -m pytest astropy/units 
+astropy/modeling astropy/config astropy/utils -q 2>&1 | grep -E "______.*_____" 
+| sed 's/ /_/g' | sort > /tmp/before.txt; git stash pop -q; wc -l 
+/tmp/before.txt /tmp/after.txt; diff /tmp/before.txt /tmp/after.txt | head -40' 
+timed out after 60 seconds</exception>
+<returncode>-1</returncode>
+<output>
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 27, $0.00):
+```
+cd /testbed && git status --short && git stash list
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+stash@{0}: WIP on main: e4f19c106 SWE-bench
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 28, $0.00):
+```
+cd /testbed && git stash pop && git diff --stat
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   astropy/utils/misc.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Dropped refs/stash@{0} (4a4bad186cfa7e01b0d0d53a15a6f39eeb5aa306)
+ astropy/utils/misc.py | 38 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 7 deletions(-)
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 29, $0.00):
+```
+cd /testbed && cp astropy/utils/misc.py /tmp/misc_new.py && timeout 300 python 
+-m pytest astropy/modeling/tests/test_mappings.py -q 2>&1 | tail -40
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+
+    @array_function_dispatch(_asscalar_dispatcher)
+    def asscalar(a):
+        """
+        Convert an array of size 1 to its scalar equivalent.
+    
+        .. deprecated:: 1.16
+    
+            Deprecated, use `numpy.ndarray.item()` instead.
+    
+        Parameters
+        ----------
+        a : ndarray
+            Input array of size 1.
+    
+        Returns
+        -------
+        out : scalar
+            Scalar representation of `a`. The output data type is the same type
+            returned by the input's `item` method.
+    
+        Examples
+        --------
+        >>> np.asscalar(np.array([24]))
+        24
+    
+        """
+    
+        # 2018-10-10, 1.16
+        warnings.warn('np.asscalar(a) is deprecated since NumPy v1.16, use '
+>                     'a.item() instead', DeprecationWarning, stacklevel=1)
+E       DeprecationWarning: np.asscalar(a) is deprecated since NumPy v1.16, use 
+a.item() instead
+
+/opt/miniconda3/envs/testbed/lib/python3.6/site-packages/numpy/lib/type_check.py
+:546: DeprecationWarning
+=============================== warnings summary ===============================
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+6 failed, 1 skipped, 1 warnings in 0.44 seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 30, $0.00):
+```
+cd /testbed && git show HEAD:astropy/utils/misc.py > /tmp/misc_old.py && rm -f 
+/tmp/status.txt && nohup bash -c '
+cd /testbed
+TESTS="astropy/units astropy/modeling astropy/config astropy/utils 
+astropy/coordinates astropy/io/votable astropy/visualization"
+cp /tmp/misc_new.py astropy/utils/misc.py
+python -m pytest $TESTS -q -rf > /tmp/after.txt 2>&1
+cp /tmp/misc_old.py astropy/utils/misc.py
+python -m pytest $TESTS -q -rf > /tmp/before.txt 2>&1
+cp /tmp/misc_new.py astropy/utils/misc.py
+echo DONE > /tmp/status.txt
+' > /tmp/nohup.log 2>&1 &
+sleep 50; ls -la /tmp/status.txt 2>/dev/null; tail -2 /tmp/after.txt 2>/dev/null
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+269 failed, 3823 passed, 345 skipped, 25 xfailed, 2 xpassed, 1 warnings in 48.66
+seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 31, $0.00):
+```
+sleep 55; cat /tmp/status.txt 2>/dev/null; tail -2 /tmp/before.txt 2>/dev/null
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+DONE
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+269 failed, 3823 passed, 345 skipped, 25 xfailed, 2 xpassed, 1 warnings in 49.53
+seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 32, $0.00):
+```
+cd /testbed && grep -E "^FAILED" /tmp/before.txt | sort > /tmp/fb.txt; grep -E 
+"^FAILED" /tmp/after.txt | sort > /tmp/fa.txt; wc -l /tmp/fb.txt /tmp/fa.txt; 
+diff /tmp/fb.txt /tmp/fa.txt && echo "IDENTICAL FAILURES"; git status --short
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+0 /tmp/fb.txt
+0 /tmp/fa.txt
+0 total
+IDENTICAL FAILURES
+ M astropy/utils/misc.py
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 33, $0.00):
+```
+cd /testbed && diff /tmp/misc_new.py astropy/utils/misc.py && echo "current file
+is NEW version"; for f in before after; do grep -E "^_{5,}.*(F|E)? *$" 
+/tmp/$f.txt | sed 's/__*/ /g' | sort -u > /tmp/x_$f.txt; done; wc -l 
+/tmp/x_before.txt /tmp/x_after.txt; diff /tmp/x_before.txt /tmp/x_after.txt | 
+head -30
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+current file is NEW version
+  253 /tmp/x_before.txt
+  253 /tmp/x_after.txt
+  506 total
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 34, $0.00):
+```
+cd /testbed && grep -n "class doc_property" -A 30 
+astropy/coordinates/attributes.py | head -45
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 35, $0.00):
+```
+cd /testbed && cat > /tmp/edge.py << 'EOF'
+from astropy.utils.misc import InheritDocstrings
+from astropy.utils.decorators import lazyproperty, classproperty
+
+
+class Base(metaclass=InheritDocstrings):
+    def meth(self):
+        "METH"
+        return 0
+
+    @property
+    def prop(self):
+        "PROP"
+        return 1
+
+    @property
+    def prop_with_setter(self):
+        "PROPSET-get"
+        return self._v if hasattr(self, '_v') else 1
+
+    @prop_with_setter.setter
+    def prop_with_setter(self, value):
+        "PROPSET-set"
+        self._v = value
+
+    @lazyproperty
+    def lazy(self):
+        "LAZY"
+        return {'a': 1}
+
+    @classproperty
+    def clsprop(cls):
+        "CLSPROP"
+        return 42
+
+    def _private_method(self):
+        return 1
+
+    @property
+    def _private_prop(self):
+        return 1
+
+
+class Sub(Base):
+    def meth(self):
+        pass
+
+    @property
+    def prop(self):
+        return 2
+
+    @property
+    def prop_with_setter(self):
+        return 3
+
+    @prop_with_setter.setter
+    def prop_with_setter(self, value):
+        self._v = value
+
+    @lazyproperty
+    def lazy(self):
+        return {'b': 2}
+
+    @classproperty
+    def clsprop(cls):
+        return 43
+
+    def _private_method(self):
+        pass
+
+    @property
+    def _private_prop(self):
+        return 2
+
+
+class Sub2(Sub):
+    """Explicit docstrings must be preserved"""
+    @property
+    def prop(self):
+        "EXPLICIT"
+        return 4
+
+    @property
+    def nothing(self):
+        return None
+
+
+# no docstring anywhere in the bases
+class NoDoc(metaclass=InheritDocstrings):
+    @property
+    def x(self):
+        return 1
+
+
+class NoDocSub(NoDoc):
+    @property
+    def x(self):
+        return 2
+
+
+print('meth        :', repr(Sub.meth.__doc__))
+print('prop        :', repr(Sub.prop.__doc__))
+print('prop w/settr:', repr(Sub.prop_with_setter.__doc__))
+print('fset type   :', type(Sub.__dict__['prop_with_setter']).__name__,
+      callable(Sub.prop_with_setter.fset))
+print('lazy type   :', type(Sub.__dict__['lazy']).__name__,
+      repr(Sub.__dict__['lazy'].__doc__))
+s = Sub()
+print('lazy value  :', s.lazy, s.lazy)
+print('clsprop     :', repr(Sub.clsprop), repr(Sub.__dict__['clsprop'].__doc__))
+print('private     :', repr(Sub._private_method.__doc__), 
+repr(Sub.__dict__['_private_prop'].__doc__))
+print('Sub2 prop   :', repr(Sub2.prop.__doc__))
+print('Sub2 nothing:', repr(Sub2.nothing.__doc__))
+print('NoDocSub x  :', repr(NoDocSub.x.__doc__))
+
+# behaviour checks
+o = Sub()
+print('prop read   :', o.prop)
+o.prop_with_setter = 7
+print('set/get     :', o.prop_with_setter)
+print('Base unchanged:', repr(Base.prop.__doc__), repr(Base().prop), 
+repr(Base.lazy.__doc__ if hasattr(Base,'lazy') else 'n/a'))
+EOF
+python /tmp/edge.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+meth        : 'METH'
+prop        : 'PROP'
+prop w/settr: 'PROPSET-get'
+fset type   : property True
+lazy type   : lazyproperty 'LAZY'
+lazy value  : {'b': 2} {'b': 2}
+clsprop     : 43 None
+private     : None None
+Sub2 prop   : 'EXPLICIT'
+Sub2 nothing: None
+NoDocSub x  : None
+prop read   : 2
+set/get     : 3
+Base unchanged: 'PROP' 1 'LAZY'
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 36, $0.00):
+```
+cd /testbed && python /tmp/edge.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+meth        : 'METH'
+prop        : 'PROP'
+prop w/settr: 'PROPSET-get'
+fset type   : property True
+lazy type   : lazyproperty 'LAZY'
+lazy value  : {'b': 2} {'b': 2}
+clsprop     : 43 None
+private     : None None
+Sub2 prop   : 'EXPLICIT'
+Sub2 nothing: None
+NoDocSub x  : None
+prop read   : 2
+set/get     : 3
+Base unchanged: 'PROP' 1 'LAZY'
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 37, $0.00):
+```
+cd /testbed && python -c "
+from astropy.utils.decorators import classproperty
+class B:
+    @classproperty
+    def c(cls):
+        'CDOC'
+        return 1
+p = B.__dict__['c']
+print(type(p), repr(p.__doc__), repr(p.fget.__doc__))
+print(B.c)
+"
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+<class 'astropy.utils.decorators.classproperty'> 'CDOC' 'CDOC'
+1
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 38, $0.00):
+The `classproperty` case doesn't work because `getattr(base, key)` *invokes* the
+descriptor. Let me fix the base-class lookup to use `__dict__`:
+
+
+
+```
+cd /testbed && python - << 'PYEOF'
+import io
+
+path = 'astropy/utils/misc.py'
+src = io.open(path, encoding='utf-8').read()
+
+old = '''            elif isinstance(val, property) and val.__doc__ is None:
+                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  Note that the docstring of a property can be
+                # assigned to, which avoids having to replace the property
+                # itself (and thus keeps its type intact, which may be that of
+                # a subclass of ``property`` such as
+                # `~astropy.utils.lazyproperty`).
+                for base in cls.__mro__[1:]:
+                    super_property = getattr(base, key, None)
+                    if isinstance(super_property, property):
+                        val.__doc__ = super_property.__doc__
+                        break
+'''
+
+new = '''            elif isinstance(val, property) and val.__doc__ is None:
+                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  They are looked up in the ``__dict__`` of each
+                # base class, since ``getattr`` would evaluate the property
+                # rather than return it.  The docstring is then simply
+                # assigned to the property, which avoids having to replace the
+                # property itself and therefore preserves its type (which may
+                # be that of a subclass of ``property``, such as
+                # `~astropy.utils.lazyproperty`).
+                for base in cls.__mro__[1:]:
+                    super_property = base.__dict__.get(key)
+                    if isinstance(super_property, property):
+                        val.__doc__ = super_property.__doc__
+                        break
+'''
+
+assert old in src
+src = src.replace(old, new)
+io.open(path, 'w', encoding='utf-8').write(src)
+print('ok')
+PYEOF
+cp astropy/utils/misc.py /tmp/misc_new.py && python /tmp/edge.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+ok
+meth        : 'METH'
+prop        : 'PROP'
+prop w/settr: 'PROPSET-get'
+fset type   : property True
+lazy type   : lazyproperty 'LAZY'
+lazy value  : {'b': 2} {'b': 2}
+clsprop     : 43 'CLSPROP'
+private     : None None
+Sub2 prop   : 'EXPLICIT'
+Sub2 nothing: None
+NoDocSub x  : None
+prop read   : 2
+set/get     : 3
+Base unchanged: 'PROP' 1 'LAZY'
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 39, $0.00):
+Now let me re-run the full regression comparison with the updated version:
+
+
+
+```
+cd /testbed && rm -f /tmp/status.txt && nohup bash -c '
+cd /testbed
+TESTS="astropy/units astropy/modeling astropy/config astropy/utils 
+astropy/coordinates astropy/io/votable astropy/visualization"
+cp /tmp/misc_new.py astropy/utils/misc.py
+python -m pytest $TESTS -q > /tmp/after.txt 2>&1
+cp /tmp/misc_old.py astropy/utils/misc.py
+python -m pytest $TESTS -q > /tmp/before.txt 2>&1
+cp /tmp/misc_new.py astropy/utils/misc.py
+echo DONE > /tmp/status.txt
+' > /tmp/nohup.log 2>&1 &
+sleep 55; cat /tmp/status.txt 2>/dev/null; tail -2 /tmp/after.txt 2>/dev/null
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+269 failed, 3823 passed, 345 skipped, 25 xfailed, 2 xpassed, 1 warnings in 47.28
+seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 40, $0.00):
+```
+sleep 55; cat /tmp/status.txt 2>/dev/null; tail -2 /tmp/before.txt; for f in 
+before after; do grep -E "^_{5,}" /tmp/$f.txt | sort -u > /tmp/x_$f.txt; done; 
+diff /tmp/x_before.txt /tmp/x_after.txt && echo "IDENTICAL FAILURE SETS"; diff 
+/tmp/misc_new.py /testbed/astropy/utils/misc.py && echo "file is new version"
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+DONE
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+269 failed, 3823 passed, 345 skipped, 25 xfailed, 2 xpassed, 1 warnings in 49.01
+seconds
+IDENTICAL FAILURE SETS
+file is new version
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 41, $0.00):
+```
+cd /testbed && cat > /tmp/scan.py << 'EOF'
+import importlib, inspect, pkgutil
+from astropy.utils.misc import InheritDocstrings
+
+mods = ['astropy.units.core', 'astropy.units.quantity', 'astropy.modeling.core',
+        'astropy.coordinates.representation', 'astropy.coordinates.earth',
+        'astropy.config.configuration', 'astropy.io.votable.tree',
+        'astropy.visualization.stretch', 'astropy.visualization.interval',
+        'astropy.constants.constant', 'astropy.units.format.base',
+        'astropy.coordinates.baseframe', 'astropy.coordinates.attributes',
+        'astropy.coordinates.frames', 'astropy.coordinates.distances',
+        'astropy.coordinates.matching', 'astropy.coordinates.sky_coordinate']
+
+found = []
+for m in mods:
+    try:
+        mod = importlib.import_module(m)
+    except Exception as e:
+        print('skip', m, e)
+        continue
+
+def classes(module):
+    for name, obj in inspect.getmembers(module, inspect.isclass):
+        yield obj
+
+seen = set()
+for m in mods:
+    try:
+        mod = importlib.import_module(m)
+    except Exception:
+        continue
+    for cls in classes(mod):
+        if cls in seen:
+            continue
+        seen.add(cls)
+        if not isinstance(cls, InheritDocstrings):
+            continue
+        for key, val in list(cls.__dict__.items()):
+            if isinstance(val, property) and val.__doc__ and not (val.fget and 
+val.fget.__doc__):
+                found.append((cls.__name__, key, val.__doc__[:60].replace('\n', 
+' ')))
+
+for f in found:
+    print(f)
+print('total inherited-only property docstrings:', len(found))
+EOF
+python /tmp/scan.py 2>&1 | tail -20
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+('CartesianRepresentation', 'y', "The 'y' component of the points(s).")
+('CartesianRepresentation', 'z', "The 'z' component of the points(s).")
+('CylindricalDifferential', 'd_rho', "Component 'd_rho' of the Differential.")
+('CylindricalDifferential', 'd_phi', "Component 'd_phi' of the Differential.")
+('CylindricalDifferential', 'd_z', "Component 'd_z' of the Differential.")
+('PhysicsSphericalDifferential', 'd_phi', "Component 'd_phi' of the 
+Differential.")
+('PhysicsSphericalDifferential', 'd_theta', "Component 'd_theta' of the 
+Differential.")
+('PhysicsSphericalDifferential', 'd_r', "Component 'd_r' of the Differential.")
+('RadialDifferential', 'd_distance', "Component 'd_distance' of the 
+Differential.")
+('SphericalCosLatDifferential', 'd_lon_coslat', "Component 'd_lon_coslat' of the
+Differential.")
+('SphericalCosLatDifferential', 'd_lat', "Component 'd_lat' of the 
+Differential.")
+('SphericalCosLatDifferential', 'd_distance', "Component 'd_distance' of the 
+Differential.")
+('SphericalDifferential', 'd_lon', "Component 'd_lon' of the Differential.")
+('SphericalDifferential', 'd_lat', "Component 'd_lat' of the Differential.")
+('SphericalDifferential', 'd_distance', "Component 'd_distance' of the 
+Differential.")
+('UnitSphericalCosLatDifferential', 'd_lon_coslat', "Component 'd_lon_coslat' of
+the Differential.")
+('UnitSphericalCosLatDifferential', 'd_lat', "Component 'd_lat' of the 
+Differential.")
+('UnitSphericalDifferential', 'd_lon', "Component 'd_lon' of the Differential.")
+('UnitSphericalDifferential', 'd_lat', "Component 'd_lat' of the Differential.")
+total inherited-only property docstrings: 23
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 42, $0.00):
+```
+cd /testbed && grep -n "def 
+property_without_getter_and_setter\|property(fget\|_create_readonly\|attr_names\
+|for attr_name" astropy/coordinates/representation.py | head -30
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 43, $0.00):
+```
+cd /testbed && grep -n "Component '{0}' of the {1}\|component" 
+astropy/coordinates/representation.py | grep -n "setattr\|property" | head -20; 
+grep -n "setattr(cls" -B 15 astropy/coordinates/representation.py | head -60
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+20:182:            setattr(self, '_' + component, attr)
+27:272:            setattr(new, '_' + component,
+52:457:                setattr(cls, component,
+53:458:                        property(_make_getter(component),
+98:1975:                setattr(cls, component,
+99:1976:                        property(_make_getter(component),
+442-            # Ensure we don't override the property that warns about the
+443-            # deprecation, but that the value remains the same.
+444-            dct.setdefault('_recommended_units', 
+dct.pop('recommended_units'))
+445-
+446-        repr_name = cls.get_name()
+447-
+448-        if repr_name in REPRESENTATION_CLASSES:
+449-            raise ValueError("Representation class {0} already defined"
+450-                             .format(repr_name))
+451-
+452-        REPRESENTATION_CLASSES[repr_name] = cls
+453-
+454-        # define getters for any component that does not yet have one.
+455-        for component in cls.attr_classes:
+456-            if not hasattr(cls, component):
+457:                setattr(cls, component,
+--
+1960-                          AstropyDeprecationWarning)
+1961-            # Ensure we don't override the property that warns about the
+1962-            # deprecation, but that the value remains the same.
+1963-            dct.setdefault('_recommended_units', 
+dct.pop('recommended_units'))
+1964-
+1965-        repr_name = cls.get_name()
+1966-        if repr_name in DIFFERENTIAL_CLASSES:
+1967-            raise ValueError("Differential class {0} already defined"
+1968-                             .format(repr_name))
+1969-
+1970-        DIFFERENTIAL_CLASSES[repr_name] = cls
+1971-
+1972-        # If not defined explicitly, create properties for the components.
+1973-        for component in cls.attr_classes:
+1974-            if not hasattr(cls, component):
+1975:                setattr(cls, component,
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 44, $0.00):
+```
+cd /testbed && cp /tmp/misc_old.py astropy/utils/misc.py && python /tmp/scan.py 
+2>&1 | tail -5; cp /tmp/misc_new.py astropy/utils/misc.py; diff /tmp/misc_new.py
+astropy/utils/misc.py && echo RESTORED
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+('UnitSphericalCosLatDifferential', 'd_lon_coslat', "Component 'd_lon_coslat' of
+the Differential.")
+('UnitSphericalCosLatDifferential', 'd_lat', "Component 'd_lat' of the 
+Differential.")
+('UnitSphericalDifferential', 'd_lon', "Component 'd_lon' of the Differential.")
+('UnitSphericalDifferential', 'd_lat', "Component 'd_lat' of the Differential.")
+total inherited-only property docstrings: 23
+RESTORED
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 45, $0.00):
+```
+cd /testbed && cat > /tmp/dump.py << 'EOF'
+import inspect, importlib
+from astropy.utils.misc import InheritDocstrings
+
+mods = ['astropy.units', 'astropy.units.quantity', 'astropy.units.core',
+        'astropy.modeling.core', 'astropy.coordinates.representation',
+        'astropy.coordinates.baseframe', 'astropy.coordinates.frames',
+        'astropy.config.configuration', 'astropy.io.votable.tree',
+        'astropy.visualization.stretch', 'astropy.visualization.interval']
+classes = set()
+for m in mods:
+    mod = importlib.import_module(m)
+    for name, obj in inspect.getmembers(mod, inspect.isclass):
+        classes.add(obj)
+
+out = []
+def walk(cls):
+    for key, val in list(cls.__dict__.items()):
+        doc = getattr(val, '__doc__', None)
+        out.append((cls.__name__, key, type(val).__name__, doc))
+for cls in classes:
+    if isinstance(cls, InheritDocstrings) or any(isinstance(b, 
+InheritDocstrings) for b in type(cls).__mro__):
+        walk(cls)
+        for sub in cls.__subclasses__():
+            if isinstance(sub, type(cls)) and type(sub) is type(cls):
+                walk(sub)
+out.sort(key=lambda t: (t[0], t[1]))
+for line in out:
+    print(line)
+EOF
+python /tmp/dump.py > /tmp/dump_new.txt 2>&1; cp /tmp/misc_old.py 
+astropy/utils/misc.py; python /tmp/dump.py > /tmp/dump_old.txt 2>&1; cp 
+/tmp/misc_new.py astropy/utils/misc.py; diff /tmp/dump_old.txt /tmp/dump_new.txt
+| head -40; echo "lines: $(wc -l < /tmp/dump_new.txt)"
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+lines: 9
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 46, $0.00):
+```
+cd /testbed && cat > /tmp/dump.py << 'EOF'
+import inspect, importlib, warnings
+warnings.simplefilter('ignore')
+from astropy.utils.misc import InheritDocstrings
+
+mods = ['astropy', 'astropy.units', 'astropy.units.quantity', 
+'astropy.units.core',
+        'astropy.modeling', 'astropy.modeling.core', 'astropy.coordinates',
+        'astropy.coordinates.representation', 'astropy.coordinates.baseframe',
+        'astropy.coordinates.frames', 'astropy.config.configuration',
+        'astropy.io.votable.tree', 'astropy.visualization.stretch',
+        'astropy.visualization.interval', 'astropy.constants']
+classes = set()
+for m in mods:
+    try:
+        mod = importlib.import_module(m)
+    except Exception as e:
+        continue
+    for name, obj in inspect.getmembers(mod, inspect.isclass):
+        classes.add(obj)
+
+def all_subclasses(cls, seen):
+    for sub in cls.__subclasses__():
+        if sub not in seen:
+            seen.add(sub)
+            all_subclasses(sub, seen)
+
+targets = set()
+for cls in classes:
+    if isinstance(cls, InheritDocstrings):
+        targets.add(cls)
+        all_subclasses(cls, targets)
+
+out = []
+for cls in targets:
+    for key, val in list(cls.__dict__.items()):
+        if isinstance(val, property):
+            out.append((cls.__module__ + '.' + cls.__name__, key, val.__doc__))
+out.sort()
+for line in out:
+    print(line)
+EOF
+python /tmp/dump.py > /tmp/dump_new.txt 2>&1; cp /tmp/misc_old.py 
+astropy/utils/misc.py; python /tmp/dump.py > /tmp/dump_old.txt 2>&1; cp 
+/tmp/misc_new.py astropy/utils/misc.py; diff /tmp/misc_new.py 
+astropy/utils/misc.py >/dev/null && echo RESTORED; wc -l /tmp/dump_new.txt 
+/tmp/dump_old.txt; diff /tmp/dump_old.txt /tmp/dump_new.txt | head -40
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+RESTORED
+   258 /tmp/dump_new.txt
+   258 /tmp/dump_old.txt
+   516 total
+135c135
+< ('astropy.modeling.blackbody.BlackBody1D', 'input_units', None)
+---
+> ('astropy.modeling.blackbody.BlackBody1D', 'input_units', '\n        This 
+property is used to indicate what units or sets of units the\n        evaluate 
+method expects, and returns a dictionary mapping inputs to\n        units (or 
+`None` if any units are accepted).\n\n        Model sub-classes can also use 
+function annotations in evaluate to\n        indicate valid input units, in 
+which case this property should\n        not be overriden since it will return 
+the input units based on the\n        annotations.\n        ')
+160,166c160,166
+< ('astropy.modeling.functional_models.AiryDisk2D', 'input_units', None)
+< ('astropy.modeling.functional_models.Box1D', 'input_units', None)
+< ('astropy.modeling.functional_models.Box2D', 'input_units', None)
+< ('astropy.modeling.functional_models.Const1D', 'input_units', None)
+< ('astropy.modeling.functional_models.Const2D', 'input_units', None)
+< ('astropy.modeling.functional_models.Disk2D', 'input_units', None)
+< ('astropy.modeling.functional_models.Ellipse2D', 'input_units', None)
+---
+> ('astropy.modeling.functional_models.AiryDisk2D', 'input_units', '\n        
+This property is used to indicate what units or sets of units the\n        
+evaluate method expects, and returns a dictionary mapping inputs to\n        
+units (or `None` if any units are accepted).\n\n        Model sub-classes can 
+also use function annotations in evaluate to\n        indicate valid input 
+units, in which case this property should\n        not be overriden since it 
+will return the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.Box1D', 'input_units', '\n        This 
+property is used to indicate what units or sets of units the\n        evaluate 
+method expects, and returns a dictionary mapping inputs to\n        units (or 
+`None` if any units are accepted).\n\n        Model sub-classes can also use 
+function annotations in evaluate to\n        indicate valid input units, in 
+which case this property should\n        not be overriden since it will return 
+the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.Box2D', 'input_units', '\n        This 
+property is used to indicate what units or sets of units the\n        evaluate 
+method expects, and returns a dictionary mapping inputs to\n        units (or 
+`None` if any units are accepted).\n\n        Model sub-classes can also use 
+function annotations in evaluate to\n        indicate valid input units, in 
+which case this property should\n        not be overriden since it will return 
+the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.Const1D', 'input_units', '\n        This 
+property is used to indicate what units or sets of units the\n        evaluate 
+method expects, and returns a dictionary mapping inputs to\n        units (or 
+`None` if any units are accepted).\n\n        Model sub-classes can also use 
+function annotations in evaluate to\n        indicate valid input units, in 
+which case this property should\n        not be overriden since it will return 
+the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.Const2D', 'input_units', '\n        This 
+property is used to indicate what units or sets of units the\n        evaluate 
+method expects, and returns a dictionary mapping inputs to\n        units (or 
+`None` if any units are accepted).\n\n        Model sub-classes can also use 
+function annotations in evaluate to\n        indicate valid input units, in 
+which case this property should\n        not be overriden since it will return 
+the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.Disk2D', 'input_units', '\n        This 
+property is used to indicate what units or sets of units the\n        evaluate 
+method expects, and returns a dictionary mapping inputs to\n        units (or 
+`None` if any units are accepted).\n\n        Model sub-classes can also use 
+function annotations in evaluate to\n        indicate valid input units, in 
+which case this property should\n        not be overriden since it will return 
+the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.Ellipse2D', 'input_units', '\n        
+This property is used to indicate what units or sets of units the\n        
+evaluate method expects, and returns a dictionary mapping inputs to\n        
+units (or `None` if any units are accepted).\n\n        Model sub-classes can 
+also use function annotations in evaluate to\n        indicate valid input 
+units, in which case this property should\n        not be overriden since it 
+will return the input units based on the\n        annotations.\n        ')
+168,169c168,169
+< ('astropy.modeling.functional_models.Gaussian1D', 'input_units', None)
+< ('astropy.modeling.functional_models.Gaussian2D', 'input_units', None)
+---
+> ('astropy.modeling.functional_models.Gaussian1D', 'input_units', '\n        
+This property is used to indicate what units or sets of units the\n        
+evaluate method expects, and returns a dictionary mapping inputs to\n        
+units (or `None` if any units are accepted).\n\n        Model sub-classes can 
+also use function annotations in evaluate to\n        indicate valid input 
+units, in which case this property should\n        not be overriden since it 
+will return the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.Gaussian2D', 'input_units', '\n        
+This property is used to indicate what units or sets of units the\n        
+evaluate method expects, and returns a dictionary mapping inputs to\n        
+units (or `None` if any units are accepted).\n\n        Model sub-classes can 
+also use function annotations in evaluate to\n        indicate valid input 
+units, in which case this property should\n        not be overriden since it 
+will return the input units based on the\n        annotations.\n        ')
+172,175c172,175
+< ('astropy.modeling.functional_models.Linear1D', 'input_units', None)
+< ('astropy.modeling.functional_models.Lorentz1D', 'input_units', None)
+< ('astropy.modeling.functional_models.MexicanHat1D', 'input_units', None)
+< ('astropy.modeling.functional_models.MexicanHat2D', 'input_units', None)
+---
+> ('astropy.modeling.functional_models.Linear1D', 'input_units', '\n        This
+property is used to indicate what units or sets of units the\n        evaluate 
+method expects, and returns a dictionary mapping inputs to\n        units (or 
+`None` if any units are accepted).\n\n        Model sub-classes can also use 
+function annotations in evaluate to\n        indicate valid input units, in 
+which case this property should\n        not be overriden since it will return 
+the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.Lorentz1D', 'input_units', '\n        
+This property is used to indicate what units or sets of units the\n        
+evaluate method expects, and returns a dictionary mapping inputs to\n        
+units (or `None` if any units are accepted).\n\n        Model sub-classes can 
+also use function annotations in evaluate to\n        indicate valid input 
+units, in which case this property should\n        not be overriden since it 
+will return the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.MexicanHat1D', 'input_units', '\n        
+This property is used to indicate what units or sets of units the\n        
+evaluate method expects, and returns a dictionary mapping inputs to\n        
+units (or `None` if any units are accepted).\n\n        Model sub-classes can 
+also use function annotations in evaluate to\n        indicate valid input 
+units, in which case this property should\n        not be overriden since it 
+will return the input units based on the\n        annotations.\n        ')
+> ('astropy.modeling.functional_models.MexicanHat2D', 'input_units', '\n        
+This property is used to indicate what units or sets of units the\n        
+evaluate method expects, and returns a dictionary mapping inputs to\n        
+units (or `None` if any units are accepted).\n\n        Model sub-classes can 
+also use function annotations in evaluate to\n        indicate valid input 
+units, in which case this property should\n        not be overriden since it 
+will return the input units based on the\n        annotations.\n        ')
+177c177
+< ('astropy.modeling.functional_models.Moffat1D', 'input_units', None)
+---
+> ('astropy.modeling.functional_models.Moffat1D', 'input_units', '\n        This
+property is used to indicate what units or sets of units the\n        evaluate 
+method expects, and returns a dictionary mapping inputs to\n        units (or 
+`None` if any units are accepted).\n\n        Model sub-classes can also use 
+function annotations in evaluate to\n        indicate valid input units, in 
+which case this property should\n        not be overriden since it will return 
+the input units based on the\n        annotations.\n        ')
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 47, $0.00):
+```
+cd /testbed && diff /tmp/dump_old.txt /tmp/dump_new.txt | grep '^<' | wc -l; 
+diff /tmp/dump_old.txt /tmp/dump_new.txt | grep '^<' | grep -v "', None)" | head
+-10; echo "=== distinct new docs ==="; diff /tmp/dump_old.txt /tmp/dump_new.txt 
+| grep '^>' | sed "s/.*', '\(.\{0,40\}\).*/\1/" | sort -u | head -20; echo "=== 
+classes affected ==="; diff /tmp/dump_old.txt /tmp/dump_new.txt | grep '^>' | 
+sed "s/^> ('//;s/'.*//" | sed 's/\.[^.]*$//' | sort -u | head -20
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+39
+=== distinct new docs ===
+\n        This property is used to indic
+=== classes affected ===
+astropy.modeling.blackbody
+astropy.modeling.functional_models
+astropy.modeling.polynomial
+astropy.modeling.powerlaws
+astropy.modeling.projections
+astropy.modeling.tabular
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 48, $0.00):
+```
+cd /testbed && diff /tmp/dump_old.txt /tmp/dump_new.txt | grep '^>' | sed "s/^> 
+('[^']*', '\([^']*\)'.*/\1/" | sort | uniq -c
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+     36 input_units
+      3 return_units
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 49, $0.00):
+```
+cd /testbed && grep -rn "InheritDocstrings\|inherit" CHANGES.rst | head -20; 
+echo ====; grep -rn "InheritDocstrings" docs/ | head -20
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+1006:- Fixed bug in identifying inherited registrations from multiple ancestors 
+[#7156]
+2216:  they inherit from Fitters class. [#5241]
+3220:  inheriting the ``primary_key`` attribute. [#4672, #4930]
+3701:  wherein class-level attributes have an inherit "ordering" to them that is
+4151:- CompoundModel now correctly inherits _n_models, allowing the use of model
+sets [#5358]
+4224:  inheriting the ``primary_key`` attribute. [#4672]
+5138:  entirely by overriding inherited class attributes instead of setting
+5794:- Fix frame attribute inheritance in ``SkyCoord.transform_to()`` method so
+7881:- The ``Quantity`` class now inherits from the Numpy array class, and
+====
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 50, $0.00):
+```
+cd /testbed && grep -n "^astropy.utils$\|^Version 3.1\|^Version 3.0.4\|^- 
+\^\^\^\^\^\^" CHANGES.rst | head -20; echo ===; sed -n 30,80p CHANGES.rst
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+75:astropy.utils
+149:astropy.utils
+218:astropy.utils
+305:astropy.utils
+528:astropy.utils
+712:astropy.utils
+825:astropy.utils
+934:astropy.utils
+1040:astropy.utils
+1175:astropy.utils
+1275:astropy.utils
+1578:astropy.utils
+1743:astropy.utils
+1937:astropy.utils
+1987:astropy.utils
+2006:astropy.utils
+2084:astropy.utils
+2270:astropy.utils
+2417:astropy.utils
+2884:astropy.utils
+===
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+- Allow array-valued ``Time`` object to be modified in place. [#6028]
+
+- Added support for missing values (masking) to the ``Time`` class. [#6028]
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 51, $0.00):
+```
+cd /testbed && grep -n "Full changelog\|Version 3.1\|Version 3.0.4" CHANGES.rst 
+| head -5; echo ===; sed -n 960,1060p CHANGES.rst
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+===
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed IndexError when ``preserve_nan=True`` in ``convolve_fft``. Added
+  testing with ``preserve_nan=True``. [#7000]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- The ``sites.json`` file is now parsed explicitly with a UTF-8 encoding. This
+  means that future revisions to the file with unicode observatory names can
+  be done without breaking the site registry parser.  [#7082]
+
+- Working around a bug in Numpy 1.14.0 that broke some coordinate
+  transformations. [#7105]
+
+- Fixed a bug where negative angles could be rounded wrongly when converting
+  to a string with seconds omitted. [#7148]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- When datafile is missing, fits.tabledump uses input file name to build
+  output file name. Fixed how it gets input file name from HDUList. [#6976]
+
+- Fix in-place updates to scaled columns. [#6956]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed bug in identifying inherited registrations from multiple ancestors 
+[#7156]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Support masked array values in ``LinearLSQFitter`` (instead of silently
+  ignorning the mask). [#6927]
+
+- Fixed a bug in ``LevMarLSQFitter`` when fitting 2D models with constraints. 
+[#6705]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``download_file`` function will check for cache downloaded from mirror URL
+  first before attempting actual download if primary URL is unavailable. [#6987]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed test failures for ``astropy.visualization.wcsaxes`` which were due to
+  local matplotlibrc files being taken into account. [#7132]
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 52, $0.00):
+```
+cd /testbed && sed -n 900,960p CHANGES.rst | grep -n "Version\|^---" ; sed -n 
+925,945p CHANGES.rst
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+57:---------
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Matplotlib axes have the ``axisbelow`` property to control the z-order of
+  ticks, tick labels, and grid lines. WCSAxes will now respect this property.
+  This is useful for drawing scale bars or inset boxes, which should have a
+  z-order that places them above all ticks and gridlines. [#7098]
+
+astropy.vo
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 53, $0.00):
+```
+cd /testbed && grep -n "^Version \|^v[0-9]" CHANGES.rst | head -8; sed -n 1,28p 
+CHANGES.rst
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+3.1 (unreleased)
+================
+
+New Features
+------------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
+are now 20x faster by using the hypergeometric function solution
+for this special case.  [#7087]
+
+Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
+are now 1000x faster by using analytic solutions instead of integrating. [#7117]
+
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 54, $0.00):
+```
+cd /testbed && grep -n "^Bug Fixes\|^New Features\|^Other Changes and 
+Additions\|^API Changes" CHANGES.rst | head -12
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+4:New Features
+85:API Changes
+158:Bug Fixes
+227:Other Changes and Additions
+237:Bug Fixes
+318:New Features
+585:API Changes
+727:Bug Fixes
+847:Other Changes and Additions
+872:Bug Fixes
+955:Bug Fixes
+1059:Other Changes and Additions
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 55, $0.00):
+```
+cd /testbed && sed -n 205,236p CHANGES.rst
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Other Changes and Additions
+---------------------------
+
+- Nothing changed yet.
+
+
+
+3.0.1 (unreleased)
+==================
+
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 56, $0.00):
+I'll keep the patch focused on the source fix. Let me review the final diff:
+
+
+
+```
+cd /testbed && git diff
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+diff --git a/astropy/utils/misc.py b/astropy/utils/misc.py
+index de3fb01d1..200c6ce14 100644
+--- a/astropy/utils/misc.py
++++ b/astropy/utils/misc.py
+@@ -496,9 +496,9 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
+ 
+ class InheritDocstrings(type):
+     """
+-    This metaclass makes methods of a class automatically have their
+-    docstrings filled in from the methods they override in the base
+-    class.
++    This metaclass makes methods and properties of a class automatically
++    have their docstrings filled in from the methods or properties they
++    override in the base class.
+ 
+     If the class uses multiple inheritance, the docstring will be
+     chosen from the first class in the bases list, in the same way as
+@@ -513,11 +513,20 @@ class InheritDocstrings(type):
+         ...     def wiggle(self):
+         ...         "Wiggle the thingamajig"
+         ...         pass
++        ...     @property
++        ...     def wobble(self):
++        ...         "Wobble the thingamajig"
++        ...         return 1
+         >>> class B(A):
+         ...     def wiggle(self):
+         ...         pass
++        ...     @property
++        ...     def wobble(self):
++        ...         return 2
+         >>> B.wiggle.__doc__
+-        u'Wiggle the thingamajig'
++        'Wiggle the thingamajig'
++        >>> B.wobble.__doc__
++        'Wobble the thingamajig'
+     """
+ 
+     def __init__(cls, name, bases, dct):
+@@ -528,15 +537,32 @@ class InheritDocstrings(type):
+                 not key.startswith('_'))
+ 
+         for key, val in dct.items():
+-            if (inspect.isfunction(val) and
+-                is_public_member(key) and
+-                val.__doc__ is None):
++            if not is_public_member(key):
++                continue
++
++            if inspect.isfunction(val) and val.__doc__ is None:
+                 for base in cls.__mro__[1:]:
+                     super_method = getattr(base, key, None)
+                     if super_method is not None:
+                         val.__doc__ = super_method.__doc__
+                         break
+ 
++            elif isinstance(val, property) and val.__doc__ is None:
++                # Contrary to methods, properties are not caught by
++                # ``inspect.isfunction`` above, so they need to be dealt with
++                # explicitly.  They are looked up in the ``__dict__`` of each
++                # base class, since ``getattr`` would evaluate the property
++                # rather than return it.  The docstring is then simply
++                # assigned to the property, which avoids having to replace the
++                # property itself and therefore preserves its type (which may
++                # be that of a subclass of ``property``, such as
++                # `~astropy.utils.lazyproperty`).
++                for base in cls.__mro__[1:]:
++                    super_property = base.__dict__.get(key)
++                    if isinstance(super_property, property):
++                        val.__doc__ = super_property.__doc__
++                        break
++
+         super().__init__(name, bases, dct)
+ 
+ 
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 57, $0.00):
+Let me polish the comment wording:
+
+
+
+```
+cd /testbed && python - << 'PYEOF'
+import io
+path = 'astropy/utils/misc.py'
+src = io.open(path, encoding='utf-8').read()
+
+old = '''                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  They are looked up in the ``__dict__`` of each
+                # base class, since ``getattr`` would evaluate the property
+                # rather than return it.  The docstring is then simply
+                # assigned to the property, which avoids having to replace the
+                # property itself and therefore preserves its type (which may
+                # be that of a subclass of ``property`` such as
+                # `~astropy.utils.lazyproperty`).
+'''
+
+new = '''                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  They are looked up in the ``__dict__`` of the
+                # base classes, since ``getattr`` would in some cases
+                # evaluate them instead of returning them (this is e.g. true
+                # for `~astropy.utils.classproperty`).  The inherited
+                # docstring is then simply assigned to the property, which
+                # avoids replacing it and therefore preserves its type (which
+                # may be a subclass of ``property``, such as
+                # `~astropy.utils.lazyproperty`).
+'''
+assert old in src
+io.open(path, 'w', encoding='utf-8').write(src.replace(old, new))
+print('ok')
+PYEOF
+sed -n 524,570p astropy/utils/misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+Traceback (most recent call last):
+  File "<stdin>", line 27, in <module>
+AssertionError
+        ...     def wobble(self):
+        ...         return 2
+        >>> B.wiggle.__doc__
+        'Wiggle the thingamajig'
+        >>> B.wobble.__doc__
+        'Wobble the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if not is_public_member(key):
+                continue
+
+            if inspect.isfunction(val) and val.__doc__ is None:
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+            elif isinstance(val, property) and val.__doc__ is None:
+                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  They are looked up in the ``__dict__`` of each
+                # base class, since ``getattr`` would evaluate the property
+                # rather than return it.  The docstring is then simply
+                # assigned to the property, which avoids having to replace the
+                # property itself and therefore preserves its type (which may
+                # be that of a subclass of ``property``, such as
+                # `~astropy.utils.lazyproperty`).
+                for base in cls.__mro__[1:]:
+                    super_property = base.__dict__.get(key)
+                    if isinstance(super_property, property):
+                        val.__doc__ = super_property.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+
+
+class OrderedDescriptor(metaclass=abc.ABCMeta):
+    """
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 58, $0.00):
+```
+cd /testbed && python - << 'PYEOF'
+import io
+path = 'astropy/utils/misc.py'
+lines = io.open(path, encoding='utf-8').readlines()
+start = next(i for i, l in enumerate(lines) if 'Contrary to methods' in l)
+end = next(i for i, l in enumerate(lines) if 'super_property = base.__dict__' in
+l)
+new = '''                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  They are looked up in the ``__dict__`` of the
+                # base classes, since ``getattr`` would in some cases
+                # evaluate them instead of returning them (this is e.g. true
+                # for `~astropy.utils.classproperty`).  The inherited
+                # docstring is then simply assigned to the property, which
+                # avoids replacing the property and therefore preserves its
+                # type (which may be that of a subclass of ``property``, such
+                # as `~astropy.utils.lazyproperty`).
+'''
+lines[start:end] = [new]
+io.open(path, 'w', encoding='utf-8').write(''.join(lines))
+print('replaced lines', start, end)
+PYEOF
+sed -n 545,570p astropy/utils/misc.py; python -c "import astropy.utils.misc" && 
+python /tmp/repro.py && python /tmp/edge.py
+```
+
+Tool:
+<returncode>1</returncode>
+<output>
+replaced lines 550 560
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+            elif isinstance(val, property) and val.__doc__ is None:
+                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  They are looked up in the ``__dict__`` of the
+                # base classes, since ``getattr`` would in some cases
+                # evaluate them instead of returning them (this is e.g. true
+                # for `~astropy.utils.classproperty`).  The inherited
+                # docstring is then simply assigned to the property, which
+                # avoids replacing the property and therefore preserves its
+                # type (which may be that of a subclass of ``property``, such
+                # as `~astropy.utils.lazyproperty`).
+                    super_property = base.__dict__.get(key)
+                    if isinstance(super_property, property):
+                        val.__doc__ = super_property.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+
+
+class OrderedDescriptor(metaclass=abc.ABCMeta):
+    """
+call doc: 'FOO'
+bar doc: 'BAR'
+baz doc: None
+baz fset doc: None
+instance bar: 2 instance baz: 2
+after set: 2
+Traceback (most recent call last):
+  File "/tmp/edge.py", line 75, in <module>
+    class Sub2(Sub):
+  File "/testbed/astropy/utils/misc.py", line 561, in __init__
+    super_property = base.__dict__.get(key)
+UnboundLocalError: local variable 'base' referenced before assignment
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 59, $0.00):
+```
+cd /testbed && python - << 'PYEOF'
+import io
+path = 'astropy/utils/misc.py'
+src = io.open(path, encoding='utf-8').read()
+old = """                # as `~astropy.utils.lazyproperty`).
+                    super_property = base.__dict__.get(key)"""
+new = """                # as `~astropy.utils.lazyproperty`).
+                for base in cls.__mro__[1:]:
+                    super_property = base.__dict__.get(key)"""
+assert old in src
+io.open(path, 'w', encoding='utf-8').write(src.replace(old, new))
+print('fixed')
+PYEOF
+sed -n 524,572p astropy/utils/misc.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+fixed
+        ...     def wobble(self):
+        ...         return 2
+        >>> B.wiggle.__doc__
+        'Wiggle the thingamajig'
+        >>> B.wobble.__doc__
+        'Wobble the thingamajig'
+    """
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if not is_public_member(key):
+                continue
+
+            if inspect.isfunction(val) and val.__doc__ is None:
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+            elif isinstance(val, property) and val.__doc__ is None:
+                # Contrary to methods, properties are not caught by
+                # ``inspect.isfunction`` above, so they need to be dealt with
+                # explicitly.  They are looked up in the ``__dict__`` of the
+                # base classes, since ``getattr`` would in some cases
+                # evaluate them instead of returning them (this is e.g. true
+                # for `~astropy.utils.classproperty`).  The inherited
+                # docstring is then simply assigned to the property, which
+                # avoids replacing the property and therefore preserves its
+                # type (which may be that of a subclass of ``property``, such
+                # as `~astropy.utils.lazyproperty`).
+                for base in cls.__mro__[1:]:
+                    super_property = base.__dict__.get(key)
+                    if isinstance(super_property, property):
+                        val.__doc__ = super_property.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+
+
+class OrderedDescriptor(metaclass=abc.ABCMeta):
+    """
+    Base class for descriptors whose order in the class body should be
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 60, $0.00):
+```
+cd /testbed && python - << 'PYEOF'
+import io
+path = 'astropy/utils/misc.py'
+lines = io.open(path, encoding='utf-8').readlines()
+start = next(i for i, l in enumerate(lines) if 'Contrary to methods' in l)
+end = next(i for i, l in enumerate(lines) if l.strip().startswith('for base in 
+cls.__mro__') and i > start)
+new = '''                # Properties are not caught by ``inspect.isfunction`` 
+above,
+                # so they have to be dealt with separately.  They are looked
+                # up in the ``__dict__`` of the base classes, since ``getattr``
+                # would in some cases evaluate them rather than return them
+                # (this is e.g. true for `~astropy.utils.classproperty`), and
+                # the inherited docstring is assigned directly to the property
+                # so that its type is preserved (it may be a subclass of
+                # ``property``, such as `~astropy.utils.lazyproperty`).
+'''
+lines[start:end] = [new]
+io.open(path, 'w', encoding='utf-8').write(''.join(lines))
+PYEOF
+sed -n 531,570p astropy/utils/misc.py; echo "=== tests ==="; python 
+/tmp/repro.py && python /tmp/edge.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+
+    def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
+        for key, val in dct.items():
+            if not is_public_member(key):
+                continue
+
+            if inspect.isfunction(val) and val.__doc__ is None:
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
+
+            elif isinstance(val, property) and val.__doc__ is None:
+                # Properties are not caught by ``inspect.isfunction`` above,
+                # so they have to be dealt with separately.  They are looked
+                # up in the ``__dict__`` of the base classes, since ``getattr``
+                # would in some cases evaluate them rather than return them
+                # (this is e.g. true for `~astropy.utils.classproperty`), and
+                # the inherited docstring is assigned directly to the property
+                # so that its type is preserved (it may be a subclass of
+                # ``property``, such as `~astropy.utils.lazyproperty`).
+                for base in cls.__mro__[1:]:
+                    super_property = base.__dict__.get(key)
+                    if isinstance(super_property, property):
+                        val.__doc__ = super_property.__doc__
+                        break
+
+        super().__init__(name, bases, dct)
+
+
+class OrderedDescriptor(metaclass=abc.ABCMeta):
+    """
+    Base class for descriptors whose order in the class body should be
+=== tests ===
+call doc: 'FOO'
+bar doc: 'BAR'
+baz doc: 'BAZ'
+baz fset doc: None
+instance bar: 2 instance baz: 2
+after set: 2
+meth        : 'METH'
+prop        : 'PROP'
+prop w/settr: 'PROPSET-get'
+fset type   : property True
+lazy type   : lazyproperty 'LAZY'
+lazy value  : {'b': 2} {'b': 2}
+clsprop     : 43 'CLSPROP'
+private     : None None
+Sub2 prop   : 'EXPLICIT'
+Sub2 nothing: None
+NoDocSub x  : None
+prop read   : 2
+set/get     : 3
+Base unchanged: 'PROP' 1 'LAZY'
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 61, $0.00):
+```
+cd /testbed && python -m flake8 --max-line-length=100 astropy/utils/misc.py 2>&1
+| head -20; echo "exit=$?"; awk 'length > 80 {print FILENAME": "NR": "length}' 
+astropy/utils/misc.py | sed -n 1,10p
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+/opt/miniconda3/envs/testbed/bin/python: No module named flake8
+exit=0
+astropy/utils/misc.py: 276: 88
+astropy/utils/misc.py: 304: 86
+astropy/utils/misc.py: 611: 82
+astropy/utils/misc.py: 612: 82
+astropy/utils/misc.py: 866: 124
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 62, $0.00):
+```
+cd /testbed && cp astropy/utils/misc.py /tmp/misc_final.py && rm -f 
+/tmp/status.txt && nohup bash -c '
+cd /testbed
+TESTS="astropy/units astropy/modeling astropy/config astropy/utils 
+astropy/coordinates astropy/io/votable astropy/visualization"
+cp /tmp/misc_final.py astropy/utils/misc.py
+python -m pytest $TESTS -q > /tmp/after2.txt 2>&1
+cp /tmp/misc_old.py astropy/utils/misc.py
+python -m pytest $TESTS -q > /tmp/before2.txt 2>&1
+cp /tmp/misc_final.py astropy/utils/misc.py
+echo DONE > /tmp/status.txt
+' > /tmp/nohup.log 2>&1 &
+sleep 55; tail -2 /tmp/after2.txt
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+269 failed, 3823 passed, 345 skipped, 25 xfailed, 2 xpassed, 1 warnings in 47.61
+seconds
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 63, $0.00):
+```
+sleep 55; cat /tmp/status.txt; tail -2 /tmp/before2.txt; for f in before2 
+after2; do grep -E "^_{5,}" /tmp/$f.txt | sort -u > /tmp/y_$f.txt; done; diff 
+/tmp/y_before2.txt /tmp/y_after2.txt && echo "IDENTICAL FAILURE SETS"; diff 
+/tmp/misc_final.py /testbed/astropy/utils/misc.py && echo "FILE IS FINAL 
+VERSION"; git -C /testbed status --short
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+DONE
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+269 failed, 3823 passed, 345 skipped, 25 xfailed, 2 xpassed, 1 warnings in 50.59
+seconds
+IDENTICAL FAILURE SETS
+FILE IS FINAL VERSION
+ M astropy/utils/misc.py
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 64, $0.00):
+```
+cd /testbed && python -m pytest astropy/utils/tests/test_misc.py -q 2>&1 | tail 
+-3; python -m pytest --doctest-modules astropy/utils/misc.py -q -k 
+InheritDocstrings 2>&1 | tail -3; python -c "import astropy.all; import 
+astropy.modeling, astropy.coordinates, astropy.units; print('imports OK')"
+```
+
+Tool:
+<returncode>1</returncode>
+<output>
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+8 passed, 1 skipped, 1 warnings in 0.07 seconds
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+============================== 2 tests deselected ==============================
+1 passed, 2 deselected, 1 warnings in 0.01 seconds
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'astropy.all'
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 65, $0.00):
+```
+cd /testbed && python -c "
+import astropy, astropy.modeling, astropy.coordinates, astropy.units, 
+astropy.io.votable, astropy.visualization, astropy.config
+import numpy as np
+from astropy.modeling.models import Gaussian1D
+print(repr(Gaussian1D.input_units.__doc__)[:60])
+print(repr(Gaussian1D.param_names), Gaussian1D(1,2,3)(3.0))
+from astropy.coordinates import CartesianRepresentation
+print(CartesianRepresentation([1.],[2.],[3.]).x)
+"
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+'\n        This property is used to indicate what units or s
+('amplitude', 'mean', 'stddev') 0.9459594689067654
+[1.]
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 66, $0.00):
+Everything works. Let me create and verify the patch:
+
+
+
+```
+cd /testbed && git diff -- astropy/utils/misc.py > patch.txt && cat patch.txt
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+diff --git a/astropy/utils/misc.py b/astropy/utils/misc.py
+index de3fb01d1..0495c82b7 100644
+--- a/astropy/utils/misc.py
++++ b/astropy/utils/misc.py
+@@ -496,9 +496,9 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
+ 
+ class InheritDocstrings(type):
+     """
+-    This metaclass makes methods of a class automatically have their
+-    docstrings filled in from the methods they override in the base
+-    class.
++    This metaclass makes methods and properties of a class automatically
++    have their docstrings filled in from the methods or properties they
++    override in the base class.
+ 
+     If the class uses multiple inheritance, the docstring will be
+     chosen from the first class in the bases list, in the same way as
+@@ -513,11 +513,20 @@ class InheritDocstrings(type):
+         ...     def wiggle(self):
+         ...         "Wiggle the thingamajig"
+         ...         pass
++        ...     @property
++        ...     def wobble(self):
++        ...         "Wobble the thingamajig"
++        ...         return 1
+         >>> class B(A):
+         ...     def wiggle(self):
+         ...         pass
++        ...     @property
++        ...     def wobble(self):
++        ...         return 2
+         >>> B.wiggle.__doc__
+-        u'Wiggle the thingamajig'
++        'Wiggle the thingamajig'
++        >>> B.wobble.__doc__
++        'Wobble the thingamajig'
+     """
+ 
+     def __init__(cls, name, bases, dct):
+@@ -528,15 +537,31 @@ class InheritDocstrings(type):
+                 not key.startswith('_'))
+ 
+         for key, val in dct.items():
+-            if (inspect.isfunction(val) and
+-                is_public_member(key) and
+-                val.__doc__ is None):
++            if not is_public_member(key):
++                continue
++
++            if inspect.isfunction(val) and val.__doc__ is None:
+                 for base in cls.__mro__[1:]:
+                     super_method = getattr(base, key, None)
+                     if super_method is not None:
+                         val.__doc__ = super_method.__doc__
+                         break
+ 
++            elif isinstance(val, property) and val.__doc__ is None:
++                # Properties are not caught by ``inspect.isfunction`` above,
++                # so they have to be dealt with separately.  They are looked
++                # up in the ``__dict__`` of the base classes, since ``getattr``
++                # would in some cases evaluate them rather than return them
++                # (this is e.g. true for `~astropy.utils.classproperty`), and
++                # the inherited docstring is assigned directly to the property
++                # so that its type is preserved (it may be a subclass of
++                # ``property``, such as `~astropy.utils.lazyproperty`).
++                for base in cls.__mro__[1:]:
++                    super_property = base.__dict__.get(key)
++                    if isinstance(super_property, property):
++                        val.__doc__ = super_property.__doc__
++                        break
++
+         super().__init__(name, bases, dct)
+ 
+ 
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 67, $0.00):
+The patch is complete and verified. Summary of the fix:
+
+**Problem:** The `InheritDocstrings` metaclass in `astropy/utils/misc.py` used 
+`inspect.isfunction()` to detect members whose docstrings should be inherited 
+from base classes — but `inspect.isfunction()` returns `False` for `property` 
+objects, so property docstrings were never inherited.
+
+**Fix:** Added a dedicated branch for `property` objects (which also covers 
+subclasses such as `astropy.utils.lazyproperty` and 
+`astropy.utils.classproperty`):
+- The base class lookup uses `base.__dict__.get(key)` rather than `getattr(base,
+key)`, because `getattr` would *evaluate* some property-like descriptors (e.g. 
+`classproperty`) instead of returning them.
+- The inherited docstring is assigned directly to the property (`val.__doc__ = 
+super_property.__doc__`), which preserves the property's exact type instead of 
+rebuilding it as a plain `property`.
+- The existing function-based behaviour is unchanged, and the class 
+docstring/doctest was updated (the doctest previously had a stale Python-2 style
+`u'...'` expectation and now passes).
+
+**Verification:**
+- Properties, setter-carrying properties, `lazyproperty` and `classproperty` all
+now inherit base docstrings while keeping their behavior.
+- All of astropy's affected modules were scanned: the change strictly adds 39 
+previously-`None` docstrings (model `input_units`/`return_units` properties); no
+existing docstring was altered.
+- Running units/modeling/config/utils/coordinates/votable/visualization test 
+suites gives an identical set of failures before and after (all pre-existing, 
+e.g. numpy `matmul`/`asscalar` deprecations).
+
+
+
+```
+echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT && cat patch.txt
+```
+
+Tool:
+<exception>action was not executed</exception>
+<returncode>-1</returncode>
+<output>
+</output>
+
+Exit:
+diff --git a/astropy/utils/misc.py b/astropy/utils/misc.py
+index de3fb01d1..0495c82b7 100644
+--- a/astropy/utils/misc.py
++++ b/astropy/utils/misc.py
+@@ -496,9 +496,9 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
+ 
+ class InheritDocstrings(type):
+     """
+-    This metaclass makes methods of a class automatically have their
+-    docstrings filled in from the methods they override in the base
+-    class.
++    This metaclass makes methods and properties of a class automatically
++    have their docstrings filled in from the methods or properties they
++    override in the base class.
+ 
+     If the class uses multiple inheritance, the docstring will be
+     chosen from the first class in the bases list, in the same way as
+@@ -513,11 +513,20 @@ class InheritDocstrings(type):
+         ...     def wiggle(self):
+         ...         "Wiggle the thingamajig"
+         ...         pass
++        ...     @property
++        ...     def wobble(self):
++        ...         "Wobble the thingamajig"
++        ...         return 1
+         >>> class B(A):
+         ...     def wiggle(self):
+         ...         pass
++        ...     @property
++        ...     def wobble(self):
++        ...         return 2
+         >>> B.wiggle.__doc__
+-        u'Wiggle the thingamajig'
++        'Wiggle the thingamajig'
++        >>> B.wobble.__doc__
++        'Wobble the thingamajig'
+     """
+ 
+     def __init__(cls, name, bases, dct):
+@@ -528,15 +537,31 @@ class InheritDocstrings(type):
+                 not key.startswith('_'))
+ 
+         for key, val in dct.items():
+-            if (inspect.isfunction(val) and
+-                is_public_member(key) and
+-                val.__doc__ is None):
++            if not is_public_member(key):
++                continue
++
++            if inspect.isfunction(val) and val.__doc__ is None:
+                 for base in cls.__mro__[1:]:
+                     super_method = getattr(base, key, None)
+                     if super_method is not None:
+                         val.__doc__ = super_method.__doc__
+                         break
+ 
++            elif isinstance(val, property) and val.__doc__ is None:
++                # Properties are not caught by ``inspect.isfunction`` above,
++                # so they have to be dealt with separately.  They are looked
++                # up in the ``__dict__`` of the base classes, since ``getattr``
++                # would in some cases evaluate them rather than return them
++                # (this is e.g. true for `~astropy.utils.classproperty`), and
++                # the inherited docstring is assigned directly to the property
++                # so that its type is preserved (it may be a subclass of
++                # ``property``, such as `~astropy.utils.lazyproperty`).
++                for base in cls.__mro__[1:]:
++                    super_property = base.__dict__.get(key)
++                    if isinstance(super_property, property):
++                        val.__doc__ = super_property.__doc__
++                        break
++
+         super().__init__(name, bases, dct)
+ 
+ 
+
+Saved trajectory to '/tmp/minisweagent/trajectory.traj.json'

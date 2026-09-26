@@ -20,11 +20,10 @@ from daytona import (
 )
 
 DEFAULT_DATASET_PATH = Path("data/sample20.csv")
-MODEL_NAME = "qwen3.8-flash"
-# Model 2 pinned to the dated snapshot: the bare "deepseek-v4-flash" alias is served but denied
-# (403 AccessDenied.Unpurchased) by this token-plan subscription, so only the snapshot is usable.
-DEEPSEEK_MODEL_NAME = "deepseek-v4-flash-0731"
-MODELS = [MODEL_NAME, DEEPSEEK_MODEL_NAME]
+MODELS = [
+    "qwen3.8-flash",
+    "deepseek-v4-flash-0731",
+]
 MODEL_API_BASE = "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
 MINI_VERSION = "2.4.6"
 DAYTONA_SECRET = "qwen-token-plan"
@@ -126,7 +125,7 @@ def load_rows(path: Path) -> list[dict[str, str]]:
     return rows
 
 
-def make_agent_config(row: dict[str, str], model_name: str = MODEL_NAME) -> bytes:
+def make_agent_config(row: dict[str, str], model_name: str) -> bytes:
     missing = missing_fields(row)
     if missing:
         raise ValueError(f"row missing required fields: {', '.join(missing)}")
@@ -298,8 +297,8 @@ def _phase(status: dict, run_dir: Path, name: str) -> Iterator[dict]:
 async def run_task(
     row: dict[str, str],
     daytona: AsyncDaytona,
-    output_root: Path = DEFAULT_OUTPUT_ROOT,
-    model_name: str = MODEL_NAME,
+    output_root: Path,
+    model_name: str,
     timeout: int = RUN_TIMEOUT_SECONDS,
 ) -> bool:
     run_dir = output_root / model_name / row["instance_id"]
@@ -349,7 +348,7 @@ async def run_task(
             try:
                 with _phase(status, run_dir, "agent"):
                     await sandbox.process.exec("mkdir -p /tmp/minisweagent")
-                    await sandbox.fs.upload_file(make_agent_config(row), OVERRIDE_PATH)
+                    await sandbox.fs.upload_file(make_agent_config(row, model_name), OVERRIDE_PATH)
                     # timeout=None: the in-sandbox `timeout` cap owns the wall clock, so a hung
                     # agent is still killed and exported instead of leaving the local await open.
                     agent = await sandbox.process.exec(
@@ -414,7 +413,7 @@ def _validation_status(output_root: Path, error: BaseException) -> None:
     instance_id = getattr(error, "instance_id", None)
     status: dict = {
         "instance_id": str(instance_id) if instance_id else None,
-        "model_name": MODEL_NAME,
+        "model_name": "unknown",
         "sandbox_id": None,
         "phase": "validate",
         "outcome": "failure",
@@ -491,7 +490,7 @@ async def run_pool(
     """
     run_one = runner or (
         lambda row, client, root, model_name: run_task(
-            row, client, root, model_name=model_name
+            row, client, root, model_name
         )
     )
     slots = asyncio.Semaphore(max(1, batch_size))

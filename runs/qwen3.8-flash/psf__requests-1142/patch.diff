@@ -1,0 +1,61 @@
+diff --git a/requests/models.py b/requests/models.py
+index 9926045..f091f65 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -339,16 +339,17 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+         body = None
+         content_type = None
+         length = None
+-        is_stream = False
+ 
+         is_stream = all([
+             hasattr(data, '__iter__'),
+             not isinstance(data, basestring),
++            not isinstance(data, list),
++            not isinstance(data, tuple),
+             not isinstance(data, dict)
+         ])
+ 
+         try:
+-            length = str(super_len(data))
++            length = super_len(data)
+         except (TypeError, AttributeError):
+             length = False
+ 
+@@ -359,7 +360,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+                 raise NotImplementedError('Streamed bodies and files are mutually exclusive.')
+ 
+             if length:
+-                self.headers['Content-Length'] = length
++                self.headers['Content-Length'] = builtin_str(length)
+             else:
+                 self.headers['Transfer-Encoding'] = 'chunked'
+         # Check if file, fo, generator, iterator.
+@@ -386,13 +387,24 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+         self.body = body
+ 
+     def prepare_content_length(self, body):
+-        self.headers['Content-Length'] = '0'
++        """Prepares the Content-Length header, if necessary.
++
++        The header is only added for requests that are expected to have a
++        payload. GET/HEAD requests without a body, for example, shouldn't
++        advertise a Content-Length of zero.
++        """
+         if hasattr(body, 'seek') and hasattr(body, 'tell'):
+             body.seek(0, 2)
+-            self.headers['Content-Length'] = str(body.tell())
++            self.headers['Content-Length'] = builtin_str(body.tell())
+             body.seek(0, 0)
+         elif body is not None:
+-            self.headers['Content-Length'] = str(len(body))
++            l = super_len(body)
++            if l:
++                self.headers['Content-Length'] = builtin_str(l)
++        elif self.method not in ('GET', 'HEAD'):
++            # Set Content-Length to 0 for methods that can have a body
++            # but don't provide one. (i.e. not GET or HEAD)
++            self.headers['Content-Length'] = '0'
+ 
+     def prepare_auth(self, auth):
+         """Prepares the given HTTP auth data."""
