@@ -41,21 +41,25 @@ def main() -> int:
     ap.add_argument("--dpi", type=int, default=100)
     args = ap.parse_args()
 
-    metrics = [("CPU % (of 4 cores)", 0), ("memory % (of 4 GiB)", 1)]
+    metrics = [("CPU % (of 4 cores)", 0, "tab:blue"),
+               ("memory % (of 4 GiB)", 1, "tab:green")]
     per_model = [model_samples(args.runs / model) for model in args.models]
 
     fig, axes = plt.subplots(1, len(metrics), figsize=(5.5 * len(metrics), 4.5),
                              sharey=True)
-    for ax, (title, idx) in zip(axes, metrics):
+    for ax, (title, idx, color) in zip(axes, metrics):
         data = [pm[idx] for pm in per_model]
-        ax.boxplot(data, orientation="horizontal", widths=0.5,
-                   flierprops=dict(marker=".", markersize=3, markerfacecolor="tab:red",
+        ax.boxplot(data, orientation="horizontal", widths=0.5, patch_artist=True,
+                   boxprops=dict(color=color, facecolor=color, alpha=0.4),
+                   whiskerprops=dict(color=color), capprops=dict(color=color),
+                   medianprops=dict(color="black"),
+                   flierprops=dict(marker=".", markersize=3, markerfacecolor=color,
                                    markeredgecolor="none", alpha=0.4))
         ax.set_xlabel(title)
         ax.set_xlim(0, 105)
         ax.set_yticks(range(1, len(args.models) + 1),
                       [f"{m}\n(n={len(pm[idx])})" for m, pm in zip(args.models, per_model)])
-        ax.invert_yaxis()  # first model on top
+    axes[0].invert_yaxis()  # first model on top; once only, sharey syncs all
     fig.tight_layout()
     args.out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.out, dpi=args.dpi)
