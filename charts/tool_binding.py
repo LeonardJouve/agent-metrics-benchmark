@@ -61,7 +61,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=DEFAULT_MODELS)
     ap.add_argument("--runs", type=Path, default=Path("runs"))
-    ap.add_argument("-o", "--out", type=Path, default=Path("charts/tool-binding.png"))
+    ap.add_argument("-o", "--out", type=Path, default=Path("images/tool-binding.png"))
     ap.add_argument("--dpi", type=int, default=100)
     args = ap.parse_args()
 

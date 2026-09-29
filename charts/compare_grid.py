@@ -27,7 +27,7 @@ def main() -> int:
     ap.add_argument("--runs", type=Path, default=Path("runs"))
     ap.add_argument("--dataset", type=Path, default=Path("data/sample20.csv"))
     ap.add_argument("--tasks", nargs="+", default=None, help="default: dataset order")
-    ap.add_argument("-o", "--out", type=Path, default=Path("charts/compare-grid.png"))
+    ap.add_argument("-o", "--out", type=Path, default=Path("images/compare-grid.png"))
     ap.add_argument("--width", type=float, default=12.0, help="inches per task column")
     ap.add_argument("--height", type=float, default=8.0, help="inches per model row")
     ap.add_argument("--dpi", type=int, default=100)

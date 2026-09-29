@@ -19,7 +19,7 @@ def main() -> int:
     ap.add_argument("-o", "--out", type=Path, default=None)
     args = ap.parse_args()
     run_dir: Path = args.run_dir
-    out = args.out or Path(f"charts/{run_dir.parent.name}-{run_dir.name}.png")
+    out = args.out or Path(f"images/{run_dir.parent.name}-{run_dir.name}.png")
     out.parent.mkdir(parents=True, exist_ok=True)
 
     status = json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
