@@ -45,4 +45,5 @@ Exit code: `0` all runs OK; `1` any fail/censor/cleanup fail. No resume; rerun o
 - [qwen3.8-flash scikit-learn__scikit-learn-14629 task profile](images/qwen3.8-flash-scikit-learn__scikit-learn-14629.png) (see [all tasks](images/compare-grid.png)) ![qwen3.8-flash-scikit-learn__scikit-learn-14629.png](images/qwen3.8-flash-scikit-learn__scikit-learn-14629.png)
 - [usage boxplot](images/usage-boxplot.png) ![usage-boxplot.png](images/usage-boxplot.png)
 - [tool binding](images/tool-binding.png) ![tool-binding.png](images/tool-binding.png)
+- [tool gaps](images/tool-gaps.png) ![tool-gaps.png](images/tool-gaps.png)
 - [usage ccdf](images/usage-ccdf.png) ![usage-ccdf.png](images/usage-ccdf.png)
