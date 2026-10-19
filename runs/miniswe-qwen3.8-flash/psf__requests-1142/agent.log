@@ -1,0 +1,2610 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/root/.config/mini-swe-agent/.env'
+Warning: Input is not a terminal (fd=0).
+Building agent config from specs: ['swebench.yaml', 
+'/tmp/minisweagent/override.yaml']
+
+System:
+You are a helpful assistant that can interact with a computer shell to solve 
+programming tasks.
+
+User:
+<pr_description>
+Consider the following PR description:
+requests.get is ALWAYS sending content length
+Hi,
+
+It seems like that request.get always adds 'content-length' header to the 
+request.
+I think that the right behavior is not to add this header automatically in GET 
+requests or add the possibility to not send it.
+
+For example http://amazon.com returns 503 for every get request that contains 
+'content-length' header.
+
+Thanks,
+
+Oren
+
+
+</pr_description>
+
+<instructions>
+# Task Instructions
+
+## Overview
+
+You're a software engineer interacting continuously with a computer by 
+submitting commands.
+You'll be helping implement necessary changes to meet requirements in the PR 
+description.
+Your task is specifically to make changes to non-test files in the current 
+directory in order to fix the issue described in the PR description in a way 
+that is general and consistent with the codebase.
+<IMPORTANT>This is an interactive process where you will think and issue AT 
+LEAST ONE command, see the result, then think and issue your next 
+command(s).</important>
+
+For each response:
+
+1. Include a THOUGHT section explaining your reasoning and what you're trying to
+accomplish
+2. Provide one or more bash tool calls to execute
+
+## Important Boundaries
+
+- MODIFY: Regular source code files in /testbed (this is the working directory 
+for all your subsequent commands)
+- DO NOT MODIFY: Tests, configuration files (pyproject.toml, setup.cfg, etc.)
+
+## Recommended Workflow
+
+1. Analyze the codebase by finding and reading relevant files
+2. Create a script to reproduce the issue
+3. Edit the source code to resolve the issue
+4. Verify your fix works by running your script again
+5. Test edge cases to ensure your fix is robust
+
+## Command Execution Rules
+
+You are operating in an environment where
+
+1. You issue at least one command
+2. The system executes the command(s) in a subshell
+3. You see the result(s)
+4. You write your next command(s)
+
+Each response should include:
+
+1. **Reasoning text** where you explain your analysis and plan
+2. At least one tool call with your command
+
+**CRITICAL REQUIREMENTS:**
+
+- Your response SHOULD include reasoning text explaining what you're doing
+- Your response MUST include AT LEAST ONE bash tool call. You can make MULTIPLE 
+tool calls in a single response when the commands are independent (e.g., 
+searching multiple files, reading different parts of the codebase).
+- Directory or environment variable changes are not persistent. Every action is 
+executed in a new subshell.
+- However, you can prefix any action with `MY_ENV_VAR=MY_VALUE cd 
+/path/to/working/dir && ...` or write/load environment variables from files
+
+Example of a CORRECT response:
+<example_response>
+I need to understand the Builder-related code. Let me find relevant files and 
+check the project structure.
+
+[Makes multiple bash tool calls: {"command": "ls -la"}, {"command": "find src 
+-name '*.java' | grep -i builder"}, {"command": "cat README.md | head -50"}]
+</example_response>
+
+## Environment Details
+
+- You have a full Linux shell environment
+- Always use non-interactive flags (-y, -f) for commands
+- Avoid interactive tools like vi, nano, or any that require user input
+- You can use bash commands or invoke any tool that is available in the 
+environment
+- You can also create new tools or scripts to help you with the task
+- If a tool isn't available, you can also install it
+
+## Submission
+
+When you've completed your work, you MUST submit your changes as a git patch.
+Follow these steps IN ORDER, with SEPARATE commands:
+
+Step 1: Create the patch file
+Run `git diff -- path/to/file1 path/to/file2 > patch.txt` listing only the 
+source files you modified.
+Do NOT commit your changes.
+
+<IMPORTANT>
+The patch must only contain changes to the specific source files you modified to
+fix the issue.
+Do not submit file creations or changes to any of the following files:
+
+- test and reproduction files
+- helper scripts, tests, or tools that you created
+- installation, build, packaging, configuration, or setup scripts unless they 
+are directly part of the issue you were fixing (you can assume that the 
+environment is already set up for your client)
+- binary or compiled files
+</IMPORTANT>
+
+Step 2: Verify your patch
+Inspect patch.txt to confirm it only contains your intended changes and headers 
+show `--- a/` and `+++ b/` paths.
+
+Step 3: Submit (EXACT command required)
+You MUST use this EXACT command to submit:
+
+```bash
+echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT && cat patch.txt
+```
+
+If the command fails (nonzero exit status), it will not submit.
+
+<CRITICAL>
+- Creating/viewing the patch and submitting it MUST be separate commands (not 
+combined with &&).
+- If you modify patch.txt after verifying, you SHOULD verify again before 
+submitting.
+- You CANNOT continue working (reading, editing, testing) in any way on this 
+task after submitting.
+</CRITICAL>
+</instructions>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 1, $0.00):
+I'll start by exploring the repository structure and finding where 
+Content-Length is set.
+
+
+
+```
+ls -la && cat setup.py 2>/dev/null | head -30
+```
+
+```
+grep -rn -i "content-length\|Content-Length" --include=*.py . | head -50
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+total 104
+drwxrwxrwx 8 root root  4096 Oct 16 13:51 .
+drwxr-xr-x 1 root root  4096 Oct 16 13:51 ..
+drwxrwxrwx 8 root root  4096 Oct 16 13:51 .git
+-rw-r--r-- 1 root root   182 Aug 13 02:46 .gitignore
+-rw-r--r-- 1 root root   170 Aug 13 02:46 .travis.yml
+-rw-r--r-- 1 root root  2441 Aug 13 02:46 AUTHORS.rst
+-rw-r--r-- 1 root root 13687 Aug 13 02:46 HISTORY.rst
+-rw-r--r-- 1 root root   581 Aug 13 02:46 LICENSE
+-rw-r--r-- 1 root root   100 Aug 13 02:46 MANIFEST.in
+-rw-r--r-- 1 root root   657 Aug 13 02:46 Makefile
+-rw-r--r-- 1 root root  4377 Aug 13 02:46 NOTICE
+-rw-r--r-- 1 root root  2510 Aug 13 02:46 README.rst
+drwxr-xr-x 4 root root  4096 Oct 16 13:51 build
+drwxrwxrwx 8 root root  4096 Oct 16 13:51 docs
+drwxrwxrwx 2 root root  4096 Oct 16 13:51 ext
+drwxr-xr-x 4 root root  4096 Oct 16 13:51 requests
+drwxr-xr-x 2 root root  4096 Oct 16 13:51 requests.egg-info
+-rw-r--r-- 1 root root    13 Aug 13 02:46 requirements.txt
+-rwxr-xr-x 1 root root  1671 Aug 13 02:46 setup.py
+-rw-r--r-- 1 root root  8824 Aug 13 02:46 test_requests.py
+#!/usr/bin/env python
+
+import os
+import sys
+
+import requests
+
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist upload')
+    sys.exit()
+
+packages = [
+    'requests',
+    'requests.packages',
+    'requests.packages.charade',
+    'requests.packages.urllib3',
+    'requests.packages.urllib3.packages',
+    'requests.packages.urllib3.packages.ssl_match_hostname'
+]
+
+requires = []
+
+setup(
+    name='requests',
+    version=requests.__version__,
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+./build/lib/requests/adapters.py:157:        chunked = not (request.body is None
+or 'Content-Length' in request.headers)
+./build/lib/requests/models.py:362:                
+self.headers['Content-Length'] = length
+./build/lib/requests/models.py:389:        self.headers['Content-Length'] = '0'
+./build/lib/requests/models.py:392:            self.headers['Content-Length'] = 
+str(body.tell())
+./build/lib/requests/models.py:395:            self.headers['Content-Length'] = 
+str(len(body))
+./build/lib/requests/models.py:410:            # Recompute Content-Length
+./requests/adapters.py:157:        chunked = not (request.body is None or 
+'Content-Length' in request.headers)
+./requests/models.py:362:                self.headers['Content-Length'] = length
+./requests/models.py:389:        self.headers['Content-Length'] = '0'
+./requests/models.py:392:            self.headers['Content-Length'] = 
+str(body.tell())
+./requests/models.py:395:            self.headers['Content-Length'] = 
+str(len(body))
+./requests/models.py:410:            # Recompute Content-Length
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 2, $0.00):
+Let me examine the relevant code in `requests/models.py`.
+
+
+
+```
+sed -n 330,430p requests/models.py
+```
+
+```
+grep -n "prepare_body\|prepare_method\|prepare_headers\|prepare_url\|def 
+prepare" requests/models.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+            self.headers = CaseInsensitiveDict()
+
+    def prepare_body(self, data, files):
+        """Prepares the given HTTP body data."""
+
+        # Check if file, fo, generator, iterator.
+        # If not, run through normal process.
+
+        # Nottin' on you.
+        body = None
+        content_type = None
+        length = None
+        is_stream = False
+
+        is_stream = all([
+            hasattr(data, '__iter__'),
+            not isinstance(data, basestring),
+            not isinstance(data, dict)
+        ])
+
+        try:
+            length = str(super_len(data))
+        except (TypeError, AttributeError):
+            length = False
+
+        if is_stream:
+            body = data
+
+            if files:
+                raise NotImplementedError('Streamed bodies and files are 
+mutually exclusive.')
+
+            if length:
+                self.headers['Content-Length'] = length
+            else:
+                self.headers['Transfer-Encoding'] = 'chunked'
+        # Check if file, fo, generator, iterator.
+        # If not, run through normal process.
+
+        else:
+            # Multi-part file uploads.
+            if files:
+                (body, content_type) = self._encode_files(files, data)
+            else:
+                if data:
+                    body = self._encode_params(data)
+                    if isinstance(data, str) or isinstance(data, builtin_str) or
+hasattr(data, 'read'):
+                        content_type = None
+                    else:
+                        content_type = 'application/x-www-form-urlencoded'
+
+            self.prepare_content_length(body)
+
+            # Add content-type if it wasn't explicitly provided.
+            if (content_type) and (not 'content-type' in self.headers):
+                self.headers['Content-Type'] = content_type
+
+        self.body = body
+
+    def prepare_content_length(self, body):
+        self.headers['Content-Length'] = '0'
+        if hasattr(body, 'seek') and hasattr(body, 'tell'):
+            body.seek(0, 2)
+            self.headers['Content-Length'] = str(body.tell())
+            body.seek(0, 0)
+        elif body is not None:
+            self.headers['Content-Length'] = str(len(body))
+
+    def prepare_auth(self, auth):
+        """Prepares the given HTTP auth data."""
+        if auth:
+            if isinstance(auth, tuple) and len(auth) == 2:
+                # special-case basic HTTP auth
+                auth = HTTPBasicAuth(*auth)
+
+            # Allow auth to make its changes.
+            r = auth(self)
+
+            # Update self to reflect the auth changes.
+            self.__dict__.update(r.__dict__)
+
+            # Recompute Content-Length
+            self.prepare_content_length(self.body)
+
+    def prepare_cookies(self, cookies):
+        """Prepares the given HTTP cookie data."""
+
+        if isinstance(cookies, cookielib.CookieJar):
+            cookies = cookies
+        else:
+            cookies = cookiejar_from_dict(cookies)
+
+        if 'cookie' not in self.headers:
+            cookie_header = get_cookie_header(cookies, self)
+            if cookie_header is not None:
+                self.headers['Cookie'] = cookie_header
+
+    def prepare_hooks(self, hooks):
+        """Prepares the given hooks."""
+        for event in hooks:
+            self.register_hook(event, hooks[event])
+
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+216:    def prepare(self):
+220:        p.prepare_method(self.method)
+221:        p.prepare_url(self.url, self.params)
+222:        p.prepare_headers(self.headers)
+224:        p.prepare_body(self.data, self.files)
+268:    def prepare_method(self, method):
+274:    def prepare_url(self, url, params):
+324:    def prepare_headers(self, headers):
+332:    def prepare_body(self, data, files):
+388:    def prepare_content_length(self, body):
+397:    def prepare_auth(self, auth):
+413:    def prepare_cookies(self, cookies):
+426:    def prepare_hooks(self, hooks):
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 3, $0.00):
+Let me check the version, git history, and how tests reference this behavior.
+
+
+
+```
+cd /testbed && cat requests/__init__.py | head -40 && git log --oneline -5
+```
+
+```
+cd /testbed && sed -n 200,280p requests/models.py && grep -n "Content" 
+test_requests.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+# -*- coding: utf-8 -*-
+
+#   __
+#  /__)  _  _     _   _ _/   _
+# / (   (- (/ (/ (- _)  /  _)
+#          /
+
+"""
+requests HTTP library
+~~~~~~~~~~~~~~~~~~~~~
+
+Requests is an HTTP library, written in Python, for human beings. Basic GET
+usage:
+
+   >>> import requests
+   >>> r = requests.get('http://python.org')
+   >>> r.status_code
+   200
+   >>> 'Python is a programming language' in r.content
+   True
+
+... or POST:
+
+   >>> payload = dict(key1='value1', key2='value2')
+   >>> r = requests.post("http://httpbin.org/post", data=payload)
+   >>> print r.text
+   {
+     ...
+     "form": {
+       "key2": "value2",
+       "key1": "value1"
+     },
+     ...
+   }
+
+The other HTTP methods are supported - see `requests.api`. Full documentation
+is at <http://python-requests.org>.
+
+© (c) 2013 by Kenneth Reitz.
+:license: Apache 2.0, see LICENSE for more details.
+546130c SWE-bench
+22623bd Merge pull request #1099 from sprt/master
+ab2e7df Merge branch 'master' of git://github.com/kennethreitz/requests
+beec48c Merge pull request #1137 from whit537/unperson_test
+b242722 Merge pull request #1136 from steveklabnik/test_link_header
+</output>
+
+Tool:
+<returncode>1</returncode>
+<output>
+        for (k, v) in list(hooks.items()):
+            self.register_hook(event=k, hook=v)
+
+        self.method = method
+        self.url = url
+        self.headers = headers
+        self.files = files
+        self.data = data
+        self.params = params
+        self.auth = auth
+        self.cookies = cookies
+        self.hooks = hooks
+
+    def __repr__(self):
+        return '<Request [%s]>' % (self.method)
+
+    def prepare(self):
+        """Constructs a :class:`PreparedRequest <PreparedRequest>` for 
+transmission and returns it."""
+        p = PreparedRequest()
+
+        p.prepare_method(self.method)
+        p.prepare_url(self.url, self.params)
+        p.prepare_headers(self.headers)
+        p.prepare_cookies(self.cookies)
+        p.prepare_body(self.data, self.files)
+        # Note that prepare_auth must be last to enable authentication schemes
+        # such as OAuth to work on a fully prepared request.
+        p.prepare_auth(self.auth)
+        # This MUST go after prepare_auth. Authenticators could add a hook
+        p.prepare_hooks(self.hooks)
+
+        return p
+
+
+class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+    """The fully mutable :class:`PreparedRequest <PreparedRequest>` object,
+    containing the exact bytes that will be sent to the server.
+
+    Generated from either a :class:`Request <Request>` object or manually.
+
+    Usage::
+
+      >>> import requests
+      >>> req = requests.Request('GET', 'http://httpbin.org/get')
+      >>> r = req.prepare()
+      <PreparedRequest [GET]>
+
+      >>> s = requests.Session()
+      >>> s.send(r)
+      <Response [200]>
+
+    """
+
+    def __init__(self):
+        #: HTTP verb to send to the server.
+        self.method = None
+        #: HTTP URL to send the request to.
+        self.url = None
+        #: dictionary of HTTP headers.
+        self.headers = None
+        #: request body to send to the server.
+        self.body = None
+        #: dictionary of callback hooks, for internal usage.
+        self.hooks = default_hooks()
+
+    def __repr__(self):
+        return '<PreparedRequest [%s]>' % (self.method)
+
+    def prepare_method(self, method):
+        """Prepares the given HTTP method."""
+        self.method = method
+        if self.method is not None:
+            self.method = self.method.upper()
+
+    def prepare_url(self, url, params):
+        """Prepares the given HTTP URL."""
+        #: Accept objects that have string representations.
+        try:
+            url = unicode(url)
+        except NameError:
+            # We're on Python 3.
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 4, $0.00):
+Let me check the adapters and urllib3 handling, plus write a reproduction 
+script.
+
+
+
+```
+cd /testbed && sed -n 130,200p requests/adapters.py
+```
+
+```
+cd /testbed && cat > /tmp/repro.py <<'EOF'
+import requests
+
+def show(method='GET', **kwargs):
+    r = requests.Request(method, 'http://example.com', **kwargs)
+    p = r.prepare()
+    print(method, kwargs.keys(), dict(p.headers), 'body=', p.body)
+
+show()
+show('POST')
+show('POST', data={'a': 'b'})
+show('GET', data={'a': 'b'})
+show('HEAD')
+show('PUT')
+show('PUT', data='')
+show('POST', data=b'')
+EOF
+python /tmp/repro.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+        connections.
+        """
+        self.poolmanager.clear()
+
+    def request_url(self, request, proxies):
+        """Obtain the url to use when making the final request.
+
+        If the message is being sent through a proxy, the full URL has to be
+        used. Otherwise, we should only use the path portion of the URL."""
+        proxies = proxies or {}
+        proxy = proxies.get(urlparse(request.url).scheme)
+
+        if proxy:
+            url, _ = urldefrag(request.url)
+        else:
+            url = request.path_url
+
+        return url
+
+    def send(self, request, stream=False, timeout=None, verify=True, cert=None, 
+proxies=None):
+        """Sends PreparedRequest object. Returns Response object."""
+
+        conn = self.get_connection(request.url, proxies)
+
+        self.cert_verify(conn, request.url, verify, cert)
+        url = self.request_url(request, proxies)
+
+        chunked = not (request.body is None or 'Content-Length' in 
+request.headers)
+
+        try:
+            if not chunked:
+                resp = conn.urlopen(
+                    method=request.method,
+                    url=url,
+                    body=request.body,
+                    headers=request.headers,
+                    redirect=False,
+                    assert_same_host=False,
+                    preload_content=False,
+                    decode_content=False,
+                    retries=self.max_retries,
+                    timeout=timeout
+                )
+
+            # Send the request.
+            else:
+                if hasattr(conn, 'proxy_pool'):
+                    conn = conn.proxy_pool
+
+                low_conn = conn._get_conn(timeout=timeout)
+                low_conn.putrequest(request.method, url, 
+skip_accept_encoding=True)
+
+                for header, value in request.headers.items():
+                    low_conn.putheader(header, value)
+
+                low_conn.endheaders()
+
+                for i in request.body:
+                    low_conn.send(hex(len(i))[2:].encode('utf-8'))
+                    low_conn.send(b'\r\n')
+                    low_conn.send(i)
+                    low_conn.send(b'\r\n')
+                low_conn.send(b'0\r\n\r\n')
+
+                r = low_conn.getresponse()
+                resp = HTTPResponse.from_httplib(r,
+                    pool=conn,
+                    connection=low_conn,
+                    preload_content=False,
+                    decode_content=False
+                )
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+GET dict_keys([]) {'Content-Length': '0'} body= None
+POST dict_keys([]) {'Content-Length': '0'} body= None
+POST dict_keys(['data']) {'Content-Length': '3', 'Content-Type': 
+'application/x-www-form-urlencoded'} body= a=b
+GET dict_keys(['data']) {'Content-Length': '3', 'Content-Type': 
+'application/x-www-form-urlencoded'} body= a=b
+HEAD dict_keys([]) {'Content-Length': '0'} body= None
+PUT dict_keys([]) {'Content-Length': '0'} body= None
+PUT dict_keys(['data']) {'Content-Length': '0'} body= None
+POST dict_keys(['data']) {'Content-Length': '0'} body= None
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 5, $0.00):
+Let me check `super_len` in utils and look at existing tests.
+
+
+
+```
+cd /testbed && grep -n "def super_len" -A 30 requests/utils.py
+```
+
+```
+cd /testbed && grep -n "length\|prepare\b" test_requests.py | head -40
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+41:def super_len(o):
+42-    if hasattr(o, '__len__'):
+43-        return len(o)
+44-    if hasattr(o, 'len'):
+45-        return o.len
+46-    if hasattr(o, 'fileno'):
+47-        return os.fstat(o.fileno()).st_size
+48-
+49-def get_netrc_auth(url):
+50-    """Returns the Requests tuple auth for a given url from netrc."""
+51-
+52-    try:
+53-        locations = (os.path.expanduser('~/{0}'.format(f)) for f in 
+NETRC_FILES)
+54-        netrc_path = None
+55-
+56-        for loc in locations:
+57-            if os.path.exists(loc) and not netrc_path:
+58-                netrc_path = loc
+59-
+60-        # Abort early if there isn't one.
+61-        if netrc_path is None:
+62-            return netrc_path
+63-
+64-        ri = urlparse(url)
+65-
+66-        # Strip port numbers from netloc
+67-        host = ri.netloc.split(':')[0]
+68-
+69-        try:
+70-            _netrc = netrc(netrc_path).authenticators(host)
+71-            if _netrc:
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+56:        pr = req.prepare()
+62:        request = requests.Request('GET', "http://0.0.0.0/get/test 
+case").prepare()
+68:            "http://example.com/path#fragment", params={"a": "b"}).prepare()
+72:            "http://example.com/path?key=value#fragment", params={"a": 
+"b"}).prepare()
+80:        r = s.send(r.prepare())
+270:        prep = req.prepare()
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 6, $0.00):
+```
+cd /testbed && sed -n 1,60p requests/models.py && grep -n "builtin_str" 
+requests/compat.py
+```
+
+```
+cd /testbed && grep -n "_encode_params" -A 40 requests/models.py | sed -n 1,80p
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+# -*- coding: utf-8 -*-
+
+"""
+requests.models
+~~~~~~~~~~~~~~~
+
+This module contains the primary objects that power Requests.
+"""
+
+import collections
+import logging
+
+from io import BytesIO
+from .hooks import default_hooks
+from .structures import CaseInsensitiveDict
+from .status_codes import codes
+
+from .auth import HTTPBasicAuth
+from .cookies import cookiejar_from_dict, get_cookie_header
+from .packages.urllib3.filepost import encode_multipart_formdata
+from .exceptions import HTTPError, RequestException, MissingSchema, InvalidURL
+from .utils import (
+    stream_untransfer, guess_filename, requote_uri,
+    stream_decode_response_unicode, to_key_val_list, parse_header_links,
+    iter_slices, guess_json_utf, super_len)
+from .compat import (
+    cookielib, urlparse, urlunparse, urlsplit, urlencode, str, bytes, StringIO,
+    is_py2, chardet, json, builtin_str, basestring)
+
+REDIRECT_STATI = (codes.moved, codes.found, codes.other, codes.temporary_moved)
+CONTENT_CHUNK_SIZE = 10 * 1024
+ITER_CHUNK_SIZE = 512
+
+log = logging.getLogger(__name__)
+
+
+class RequestEncodingMixin(object):
+    @property
+    def path_url(self):
+        """Build the path URL to use."""
+
+        url = []
+
+        p = urlsplit(self.url)
+
+        path = p.path
+        if not path:
+            path = '/'
+
+        url.append(path)
+
+        query = p.query
+        if query:
+            url.append('?')
+            url.append(query)
+
+        return ''.join(url)
+
+    @staticmethod
+    def _encode_params(data):
+94:    builtin_str = str
+110:    builtin_str = str
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+60:    def _encode_params(data):
+61-        """Encode parameters in a piece of data.
+62-
+63-        Will successfully encode parameters when passed as a dict or a list 
+of
+64-        2-tuples. Order is retained if data is a list of 2-tuples but 
+abritrary
+65-        if parameters are supplied as a dict.
+66-        """
+67-
+68-        if isinstance(data, (str, bytes)):
+69-            return data
+70-        elif hasattr(data, 'read'):
+71-            return data
+72-        elif hasattr(data, '__iter__'):
+73-            result = []
+74-            for k, vs in to_key_val_list(data):
+75-                if isinstance(vs, basestring) or not hasattr(vs, '__iter__'):
+76-                    vs = [vs]
+77-                for v in vs:
+78-                    if v is not None:
+79-                        result.append(
+80-                            (k.encode('utf-8') if isinstance(k, str) else k,
+81-                             v.encode('utf-8') if isinstance(v, str) else v))
+82-            return urlencode(result, doseq=True)
+83-        else:
+84-            return data
+85-
+86-    @staticmethod
+87-    def _encode_files(files, data):
+88-        """Build the body for a multipart/form-data request.
+89-
+90-        Will successfully encode files when passed as a dict or a list of
+91-        2-tuples. Order is retained if data is a list of 2-tuples but 
+abritrary
+92-        if parameters are supplied as a dict.
+93-
+94-        """
+95-        if (not files) or isinstance(data, str):
+96-            return None
+97-
+98-        new_fields = []
+99-        fields = to_key_val_list(data or {})
+100-        files = to_key_val_list(files or {})
+--
+314:        enc_params = self._encode_params(params)
+315-        if enc_params:
+316-            if query:
+317-                query = '%s&%s' % (query, enc_params)
+318-            else:
+319-                query = enc_params
+320-
+321-        url = requote_uri(urlunparse([scheme, netloc, path, _params, query, 
+fragment]))
+322-        self.url = url
+323-
+324-    def prepare_headers(self, headers):
+325-        """Prepares the given HTTP headers."""
+326-
+327-        if headers:
+328-            self.headers = CaseInsensitiveDict(headers)
+329-        else:
+330-            self.headers = CaseInsensitiveDict()
+331-
+332-    def prepare_body(self, data, files):
+333-        """Prepares the given HTTP body data."""
+334-
+335-        # Check if file, fo, generator, iterator.
+336-        # If not, run through normal process.
+337-
+338-        # Nottin' on you.
+339-        body = None
+340-        content_type = None
+341-        length = None
+342-        is_stream = False
+343-
+344-        is_stream = all([
+345-            hasattr(data, '__iter__'),
+346-            not isinstance(data, basestring),
+347-            not isinstance(data, dict)
+348-        ])
+349-
+350-        try:
+351-            length = str(super_len(data))
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 7, $0.00):
+```
+cd /testbed && grep -rn "super_len" --include=*.py requests/ test_requests.py &&
+grep -n "StringIO\|BytesIO\|open(" test_requests.py
+```
+
+```
+cd /testbed && sed -n 1,60p requests/utils.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+requests/utils.py:41:def super_len(o):
+requests/models.py:25:    iter_slices, guess_json_utf, super_len)
+requests/models.py:351:            length = str(super_len(data))
+15:    import StringIO
+17:    import io as StringIO
+187:        with open('requirements.txt') as f:
+207:        with open('requirements.txt') as f:
+252:                          files={'file': ('test_requests.py', open(__file__,
+'rb'))})
+258:                          files={'file1': ('test_requests.py', 
+open(__file__, 'rb')),
+259:                                 'file2': ('test_requests', open(__file__, 
+'rb'),
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+# -*- coding: utf-8 -*-
+
+"""
+requests.utils
+~~~~~~~~~~~~~~
+
+This module provides utility functions that are used within Requests
+that are also useful for external consumption.
+
+"""
+
+import cgi
+import codecs
+import os
+import platform
+import re
+import sys
+import zlib
+from netrc import netrc, NetrcParseError
+
+from . import __version__
+from . import certs
+from .compat import parse_http_list as _parse_list_header
+from .compat import quote, urlparse, bytes, str, OrderedDict, urlunparse
+from .cookies import RequestsCookieJar, cookiejar_from_dict
+
+_hush_pyflakes = (RequestsCookieJar,)
+
+NETRC_FILES = ('.netrc', '_netrc')
+
+DEFAULT_CA_BUNDLE_PATH = certs.where()
+
+def dict_to_sequence(d):
+    """Returns an internal sequence dictionary update."""
+
+    if hasattr(d, 'items'):
+        d = d.items()
+
+    return d
+
+def super_len(o):
+    if hasattr(o, '__len__'):
+        return len(o)
+    if hasattr(o, 'len'):
+        return o.len
+    if hasattr(o, 'fileno'):
+        return os.fstat(o.fileno()).st_size
+
+def get_netrc_auth(url):
+    """Returns the Requests tuple auth for a given url from netrc."""
+
+    try:
+        locations = (os.path.expanduser('~/{0}'.format(f)) for f in NETRC_FILES)
+        netrc_path = None
+
+        for loc in locations:
+            if os.path.exists(loc) and not netrc_path:
+                netrc_path = loc
+
+        # Abort early if there isn't one.
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 8, $0.00):
+Now I'll implement the fix. First, update `prepare_content_length` and 
+`prepare_body` in models.py:
+
+
+
+```
+cd /testbed && python - <<'EOF'
+import re
+path = 'requests/models.py'
+src = open(path).read()
+
+old_prepare = """        try:
+            length = str(super_len(data))
+        except (TypeError, AttributeError):
+            length = False
+
+        if is_stream:
+            body = data
+
+            if files:
+                raise NotImplementedError('Streamed bodies and files are 
+mutually exclusive.')
+
+            if length:
+                self.headers['Content-Length'] = length
+            else:
+                self.headers['Transfer-Encoding'] = 'chunked'
+"""
+
+new_prepare = """        try:
+            length = super_len(data)
+        except (TypeError, AttributeError):
+            length = False
+
+        if is_stream:
+            body = data
+
+            if files:
+                raise NotImplementedError('Streamed bodies and files are 
+mutually exclusive.')
+
+            if length:
+                self.headers['Content-Length'] = builtin_str(length)
+            else:
+                self.headers['Transfer-Encoding'] = 'chunked'
+"""
+
+assert old_prepare in src
+src = src.replace(old_prepare, new_prepare)
+
+old_cl = """    def prepare_content_length(self, body):
+        self.headers['Content-Length'] = '0'
+        if hasattr(body, 'seek') and hasattr(body, 'tell'):
+            body.seek(0, 2)
+            self.headers['Content-Length'] = str(body.tell())
+            body.seek(0, 0)
+        elif body is not None:
+            self.headers['Content-Length'] = str(len(body))
+"""
+
+new_cl = """    def prepare_content_length(self, body):
+        \"\"\"Prepares the given HTTP Content-Length header.
+
+        A Content-Length header is only added when there is actually a body
+        to send, or when the request method is one that is expected to carry
+        a body (e.g. POST, PUT, PATCH). GET and HEAD requests without a body,
+        in particular, are left alone, as some servers reject requests that
+        advertise a body length for those methods.
+        \"\"\"
+
+        if body is not None:
+            length = super_len(body)
+            if length:
+                self.headers['Content-Length'] = builtin_str(length)
+        elif self.method not in ('GET', 'HEAD') and \\
+                self.headers.get('Content-Length') is None:
+            # Set Content-Length to 0 for methods that can have a body
+            # but don't provide one. (i.e. not GET or HEAD)
+            self.headers['Content-Length'] = '0'
+"""
+
+assert old_cl in src
+src = src.replace(old_cl, new_cl)
+
+open(path, 'w').write(src)
+print("models.py patched")
+EOF
+sed -n 332,412p requests/models.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+models.py patched
+    def prepare_body(self, data, files):
+        """Prepares the given HTTP body data."""
+
+        # Check if file, fo, generator, iterator.
+        # If not, run through normal process.
+
+        # Nottin' on you.
+        body = None
+        content_type = None
+        length = None
+        is_stream = False
+
+        is_stream = all([
+            hasattr(data, '__iter__'),
+            not isinstance(data, basestring),
+            not isinstance(data, dict)
+        ])
+
+        try:
+            length = super_len(data)
+        except (TypeError, AttributeError):
+            length = False
+
+        if is_stream:
+            body = data
+
+            if files:
+                raise NotImplementedError('Streamed bodies and files are 
+mutually exclusive.')
+
+            if length:
+                self.headers['Content-Length'] = builtin_str(length)
+            else:
+                self.headers['Transfer-Encoding'] = 'chunked'
+        # Check if file, fo, generator, iterator.
+        # If not, run through normal process.
+
+        else:
+            # Multi-part file uploads.
+            if files:
+                (body, content_type) = self._encode_files(files, data)
+            else:
+                if data:
+                    body = self._encode_params(data)
+                    if isinstance(data, str) or isinstance(data, builtin_str) or
+hasattr(data, 'read'):
+                        content_type = None
+                    else:
+                        content_type = 'application/x-www-form-urlencoded'
+
+            self.prepare_content_length(body)
+
+            # Add content-type if it wasn't explicitly provided.
+            if (content_type) and (not 'content-type' in self.headers):
+                self.headers['Content-Type'] = content_type
+
+        self.body = body
+
+    def prepare_content_length(self, body):
+        """Prepares the given HTTP Content-Length header.
+
+        A Content-Length header is only added when there is actually a body
+        to send, or when the request method is one that is expected to carry
+        a body (e.g. POST, PUT, PATCH). GET and HEAD requests without a body,
+        in particular, are left alone, as some servers reject requests that
+        advertise a body length for those methods.
+        """
+
+        if body is not None:
+            length = super_len(body)
+            if length:
+                self.headers['Content-Length'] = builtin_str(length)
+        elif self.method not in ('GET', 'HEAD') and \
+                self.headers.get('Content-Length') is None:
+            # Set Content-Length to 0 for methods that can have a body
+            # but don't provide one. (i.e. not GET or HEAD)
+            self.headers['Content-Length'] = '0'
+
+    def prepare_auth(self, auth):
+        """Prepares the given HTTP auth data."""
+        if auth:
+            if isinstance(auth, tuple) and len(auth) == 2:
+                # special-case basic HTTP auth
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 9, $0.00):
+Now let's improve `super_len` in utils.py to handle seekable file-like objects 
+without a file descriptor (e.g. `BytesIO`) gracefully:
+
+
+
+```
+cd /testbed && python - <<'EOF'
+path = 'requests/utils.py'
+src = open(path).read()
+
+old = """import cgi
+import codecs
+import os
+"""
+new = """import cgi
+import codecs
+import io
+import os
+"""
+assert old in src
+src = src.replace(old, new, 1)
+
+old_len = """def super_len(o):
+    if hasattr(o, '__len__'):
+        return len(o)
+    if hasattr(o, 'len'):
+        return o.len
+    if hasattr(o, 'fileno'):
+        return os.fstat(o.fileno()).st_size
+"""
+
+new_len = """def super_len(o):
+    \"\"\"Returns the size of the given object, if it can be determined.
+
+    None is returned when the length cannot be figured out (e.g. for
+    iterators, which have an unknown length).
+    \"\"\"
+    if hasattr(o, '__len__'):
+        return len(o)
+    if hasattr(o, 'len'):
+        return o.len
+    if hasattr(o, 'fileno'):
+        try:
+            fileno = o.fileno()
+        except (io.UnsupportedOperation, ValueError, OSError):
+            # Objects like io.BytesIO expose a `fileno` method, but it
+            # cannot be used to stat the underlying file.
+            pass
+        else:
+            return os.fstat(fileno).st_size
+    if hasattr(o, 'seek') and hasattr(o, 'tell'):
+        # Seekable objects that aren't backed by a file descriptor
+        # (e.g. io.BytesIO) are measured by seeking to their end.
+        position = o.tell()
+        o.seek(0, 2)
+        length = o.tell()
+        o.seek(position, 0)
+        return length
+"""
+
+assert old_len in src
+src = src.replace(old_len, new_len, 1)
+open(path, 'w').write(src)
+print('utils.py patched')
+EOF
+sed -n 40,70p requests/utils.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+utils.py patched
+    return d
+
+def super_len(o):
+    """Returns the size of the given object, if it can be determined.
+
+    None is returned when the length cannot be figured out (e.g. for
+    iterators, which have an unknown length).
+    """
+    if hasattr(o, '__len__'):
+        return len(o)
+    if hasattr(o, 'len'):
+        return o.len
+    if hasattr(o, 'fileno'):
+        try:
+            fileno = o.fileno()
+        except (io.UnsupportedOperation, ValueError, OSError):
+            # Objects like io.BytesIO expose a `fileno` method, but it
+            # cannot be used to stat the underlying file.
+            pass
+        else:
+            return os.fstat(fileno).st_size
+    if hasattr(o, 'seek') and hasattr(o, 'tell'):
+        # Seekable objects that aren't backed by a file descriptor
+        # (e.g. io.BytesIO) are measured by seeking to their end.
+        position = o.tell()
+        o.seek(0, 2)
+        length = o.tell()
+        o.seek(position, 0)
+        return length
+
+def get_netrc_auth(url):
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 10, $0.00):
+Let me verify the fix with the reproduction script and test edge cases:
+
+
+
+```
+cd /testbed && python /tmp/repro.py
+```
+
+```
+cd /testbed && cat > /tmp/edge.py <<'EOF'
+import io, requests
+
+def p(method='GET', **kwargs):
+    return dict(requests.Request(method, 'http://example.com', 
+**kwargs).prepare().headers)
+
+# File-like body (real file)
+with open('requirements.txt') as f:
+    print('file data:', p('POST', data=f))
+print('bytesio:', p('POST', data=io.BytesIO(b'hello')))
+print('generator:', p('POST', data=(i for i in [b'a'])))
+print('list of tuples:', p('POST', data=[('a', 'b')]))
+print('files:', p('POST', files={'f': ('x.txt', io.BytesIO(b'content'))}))
+print('explicit CL GET:', p('GET', headers={'Content-Length': '10'}))
+print('auth GET:', p('GET', auth=('u', 'pass')))
+print('auth POST file:', p('POST', auth=('u', 'pass'), 
+data=io.BytesIO(b'hello')))
+print('str body:', p('POST', data='some text'))
+print('DELETE:', p('DELETE'))
+print('OPTIONS:', p('OPTIONS'))
+EOF
+python /tmp/edge.py
+```
+
+Tool:
+<returncode>2</returncode>
+<output>
+python: can't open file '/tmp/repro.py': [Errno 2] No such file or directory
+</output>
+
+Tool:
+<returncode>1</returncode>
+<output>
+file data: {'Content-Length': '13'}
+Traceback (most recent call last):
+  File "/tmp/edge.py", line 9, in <module>
+    print('bytesio:', p('POST', data=io.BytesIO(b'hello')))
+  File "/tmp/edge.py", line 4, in p
+    return dict(requests.Request(method, 'http://example.com', 
+**kwargs).prepare().headers)
+  File 
+"/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py", 
+line 224, in prepare
+    p.prepare_body(self.data, self.files)
+  File 
+"/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py", 
+line 351, in prepare_body
+    length = str(super_len(data))
+  File 
+"/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/utils.py", 
+line 47, in super_len
+    return os.fstat(o.fileno()).st_size
+io.UnsupportedOperation: fileno
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 11, $0.00):
+Interesting — the environment imports an installed copy. Let me check the 
+install situation.
+
+
+
+```
+cd /testbed && ls -la /opt/miniconda3/envs/testbed/lib/python3.9/site-packages/ 
+| grep -i requests && python -c "import requests; print(requests.__file__, 
+requests.__version__)"
+```
+
+```
+ls -la /tmp/ && cd /testbed && git status --short
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+drwxr-xr-x 4 root root 4096 Aug 13 02:46 requests
+drwxr-xr-x 2 root root 4096 Aug 13 02:46 requests-1.1.0.dist-info
+/testbed/requests/models.py:571: SyntaxWarning: "is" with a literal. Did you 
+mean "=="?
+  if self.status_code is 0:
+/testbed/requests/__init__.py 1.1.0
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+total 8
+drwxrwxrwt 2 root root 4096 Jul 31 14:28 .
+drwxr-xr-x 1 root root 4096 Oct 16 13:54 ..
+ M requests/models.py
+ M requests/utils.py
+?? build/
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 12, $0.00):
+/tmp is ephemeral per command. Let me test using `python -c` from /testbed (so 
+the local package is used):
+
+
+
+```
+cd /testbed && python -c "
+import io, requests
+
+def p(method='GET', **kwargs):
+    pr = requests.Request(method, 'http://example.com', **kwargs).prepare()
+    return dict(pr.headers), pr.body
+
+print('GET:', p('GET'))
+print('HEAD:', p('HEAD'))
+print('POST no data:', p('POST'))
+print('PUT no data:', p('PUT'))
+print('DELETE:', p('DELETE'))
+print('POST data:', p('POST', data={'a':'b'}))
+print('GET data:', p('GET', data={'a':'b'}))
+print('POST str:', p('POST', data='some text'))
+print('POST empty str:', p('POST', data=''))
+print('POST bytesio:', p('POST', data=io.BytesIO(b'hello')))
+print('POST generator:', p('POST', data=(i for i in [b'a', b'b'])))
+print('POST files:', p('POST', files={'f': ('x.txt', io.BytesIO(b'content'))}))
+print('GET explicit CL:', p('GET', headers={'Content-Length': '10'}))
+print('GET auth:', p('GET', auth=('u','pass')))
+print('POST auth bytesio:', p('POST', auth=('u','pass'), 
+data=io.BytesIO(b'hello')))
+print('POST auth gen:', p('POST', auth=('u','pass'), data=(i for i in [b'a'])))
+" 2>/dev/null
+```
+
+```
+cd /testbed && cat requirements.txt && head -30 test_requests.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+GET: ({}, None)
+HEAD: ({}, None)
+POST no data: ({'Content-Length': '0'}, None)
+PUT no data: ({'Content-Length': '0'}, None)
+DELETE: ({'Content-Length': '0'}, None)
+POST data: ({'Content-Length': '3', 'Content-Type': 
+'application/x-www-form-urlencoded'}, 'a=b')
+GET data: ({'Content-Length': '3', 'Content-Type': 
+'application/x-www-form-urlencoded'}, 'a=b')
+POST str: ({'Content-Length': '9'}, 'some text')
+POST empty str: ({'Content-Length': '0'}, None)
+POST bytesio: ({'Content-Length': '5'}, <_io.BytesIO object at 0x74ce885e7a40>)
+POST generator: ({'Transfer-Encoding': 'chunked'}, <generator object <genexpr> 
+at 0x74ce8852d4a0>)
+POST files: ({'Content-Length': '171', 'Content-Type': b'multipart/form-data; 
+boundary=16d0ebca809643bbb9177663b84f2c7a'}, 
+b'--16d0ebca809643bbb9177663b84f2c7a\r\nContent-Disposition: form-data; 
+name="f"; filename="x.txt"\r\nContent-Type: 
+text/plain\r\n\r\ncontent\r\n--16d0ebca809643bbb9177663b84f2c7a--\r\n')
+GET explicit CL: ({'Content-Length': '10'}, None)
+GET auth: ({'Authorization': 'Basic dTpwYXNz'}, None)
+POST auth bytesio: ({'Content-Length': '5', 'Authorization': 'Basic dTpwYXNz'}, 
+<_io.BytesIO object at 0x74ce885e7a40>)
+POST auth gen: ({'Transfer-Encoding': 'chunked', 'Authorization': 'Basic 
+dTpwYXNz'}, <generator object <genexpr> at 0x74ce8852d4a0>)
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+pytest
+sphinx#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""Tests for Requests."""
+
+import json
+import os
+import unittest
+
+import requests
+from requests.auth import HTTPDigestAuth
+from requests.compat import str
+
+try:
+    import StringIO
+except ImportError:
+    import io as StringIO
+
+HTTPBIN = os.environ.get('HTTPBIN_URL', 'http://httpbin.org/')
+
+def httpbin(*suffix):
+    """Returns url for HTTPBIN resource."""
+    return HTTPBIN + '/'.join(suffix)
+
+class RequestsTestCase(unittest.TestCase):
+
+    _multiprocess_can_split_ = True
+
+    def setUp(self):
+        """Create simple data set with headers."""
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 13, $0.00):
+Let me check whether bundled urllib3 adds Content-Length on its own, and run the
+test suite:
+
+
+
+```
+cd /testbed && grep -rn -i "content-length" requests/packages/urllib3/*.py | 
+head -20
+```
+
+```
+cd /testbed && grep -n "body" requests/packages/urllib3/connectionpool.py | sed 
+-n 1,40p
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+325:    def urlopen(self, method, url, body=None, headers=None, retries=3,
+348:        :param body:
+349:            Data to send in the request body (useful for creating
+421:                                                  body=body, 
+headers=headers)
+478:            return self.urlopen(method, url, body, headers, retries - 1,
+489:            return self.urlopen(method, redirect_location, body, headers,
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 14, $0.00):
+```
+cd /testbed && sed -n 280,325p requests/packages/urllib3/connectionpool.py
+```
+
+```
+cd /testbed && timeout 600 python -m pytest test_requests.py -x -q 2>&1 | tail 
+-30
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+        try: # Python 2.7+, use buffering of HTTP responses
+            httplib_response = conn.getresponse(buffering=True)
+        except TypeError: # Python 2.6 and older
+            httplib_response = conn.getresponse()
+
+        # AppEngine doesn't have a version attr.
+        http_version = getattr(conn, '_http_vsn_str', 'HTTP/?')
+        log.debug("\"%s %s %s\" %s %s" % (method, url, http_version,
+                                          httplib_response.status,
+                                          httplib_response.length))
+        return httplib_response
+
+    def close(self):
+        """
+        Close all pooled connections and disable the pool.
+        """
+        # Disable access to the pool
+        old_pool, self.pool = self.pool, None
+
+        try:
+            while True:
+                conn = old_pool.get(block=False)
+                if conn:
+                    conn.close()
+
+        except Empty:
+            pass # Done.
+
+    def is_same_host(self, url):
+        """
+        Check if the given ``url`` is a member of the same host as this
+        connection pool.
+        """
+        if url.startswith('/'):
+            return True
+
+        # TODO: Add optional support for socket.gethostbyname checking.
+        scheme, host, port = get_host(url)
+
+        if self.port and not port:
+            # Use explicit default port for comparison when none is given.
+            port = port_by_scheme.get(scheme)
+
+        return (scheme, host, port) == (self.scheme, self.host, self.port)
+
+    def urlopen(self, method, url, body=None, headers=None, retries=3,
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+
+self = <requests.packages.urllib3.connectionpool.HTTPConnectionPool object at 
+0x703afe47af10>
+
+    def _new_conn(self):
+        """
+        Return a fresh :class:`httplib.HTTPConnection`.
+        """
+        self.num_connections += 1
+        log.info("Starting new HTTP connection (%d): %s" %
+                 (self.num_connections, self.host))
+>       return HTTPConnection(host=self.host,
+                              port=self.port,
+                              strict=self.strict)
+E       TypeError: __init__() got an unexpected keyword argument 'strict'
+
+requests/packages/urllib3/connectionpool.py:196: TypeError
+=============================== warnings summary ===============================
+requests/packages/urllib3/_collections.py:7
+  /testbed/requests/packages/urllib3/_collections.py:7: DeprecationWarning: 
+Using or importing the ABCs from 'collections' instead of from 'collections.abc'
+is deprecated since Python 3.3, and in 3.10 it will stop working
+    from collections import MutableMapping
+
+test_requests.py::RequestsTestCase::test_BASICAUTH_TUPLE_HTTP_200_OK_GET
+  /testbed/requests/models.py:140: DeprecationWarning: Using or importing the 
+ABCs from 'collections' instead of from 'collections.abc' is deprecated since 
+Python 3.3, and in 3.10 it will stop working
+    if isinstance(hook, collections.Callable):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED test_requests.py::RequestsTestCase::test_BASICAUTH_TUPLE_HTTP_200_OK_GET
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 2 warnings in 0.12s
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 15, $0.00):
+The test failures are pre-existing (old bundled urllib3 incompatible with py3.9 
++ no network). Let me check redirect handling for body/content-length 
+preservation:
+
+
+
+```
+cd /testbed && grep -n "redirect" -A 30 requests/sessions.py | sed -n 1,80p
+```
+
+```
+cd /testbed && timeout 300 python -m pytest test_requests.py -q 2>&1 | tail -12
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+77:    def resolve_redirects(self, resp, req, stream=False, timeout=None, 
+verify=True, cert=None, proxies=None):
+78-        """Receives a Response. Returns a generator of Responses."""
+79-
+80-        i = 0
+81-
+82-        # ((resp.status_code is codes.see_other))
+83-        while (('location' in resp.headers and resp.status_code in 
+REDIRECT_STATI)):
+84-
+85-            resp.content  # Consume socket so it can be released
+86-
+87:            if i >= self.max_redirects:
+88:                raise TooManyRedirects('Exceeded %s redirects.' % 
+self.max_redirects)
+89-
+90-            # Release the connection back into the pool.
+91-            resp.close()
+92-
+93-            url = resp.headers['location']
+94-            method = req.method
+95-
+96:            # Handle redirection without scheme (see: RFC 1808 Section 4)
+97-            if url.startswith('//'):
+98-                parsed_rurl = urlparse(resp.url)
+99-                url = '%s:%s' % (parsed_rurl.scheme, url)
+100-
+101-            # Facilitate non-RFC2616-compliant 'location' headers
+102-            # (e.g. '/path/to/resource' instead of 
+'http://domain.tld/path/to/resource')
+103-            if not urlparse(url).netloc:
+104-                # Compliant with RFC3986, we percent encode the url.
+105-                url = urljoin(resp.url, requote_uri(url))
+106-
+107-            # 
+http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.4
+108-            if resp.status_code is codes.see_other and req.method != 'HEAD':
+109-                method = 'GET'
+110-
+111-            # Do what the browsers do, despite standards...
+112-            if resp.status_code in (codes.moved, codes.found) and req.method
+== 'POST':
+113-                method = 'GET'
+114-
+115-            # Remove the cookie headers that were sent.
+116-            headers = req.headers
+117-            try:
+118-                del headers['Cookie']
+119-            except KeyError:
+120-                pass
+121-
+122-            resp = self.request(
+123-                    url=url,
+124-                    method=method,
+125-                    headers=headers,
+126-                    auth=req.auth,
+--
+128:                    allow_redirects=False,
+129-                    stream=stream,
+130-                    timeout=timeout,
+131-                    verify=verify,
+132-                    cert=cert,
+133-                    proxies=proxies,
+134-                    hooks=req.hooks,
+135-            )
+136-
+137-            i += 1
+138-            yield resp
+139-
+140-
+141-class Session(SessionRedirectMixin):
+142-    """A Requests session.
+143-
+144-    Provides cookie persistience, connection-pooling, and configuration.
+145-
+146-    Basic Usage::
+147-
+148-      >>> import requests
+149-      >>> s = requests.Session()
+150-      >>> s.get('http://httpbin.org/get')
+151-      200
+152-    """
+153-
+154-    def __init__(self):
+155-
+156-        #: A case-insensitive dictionary of headers to be sent on each
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+FAILED test_requests.py::RequestsTestCase::test_POSTBIN_GET_POST_FILES_WITH_DATA
+FAILED test_requests.py::RequestsTestCase::test_custom_content_type - TypeErr...
+FAILED test_requests.py::RequestsTestCase::test_decompress_gzip - TypeError: ...
+FAILED 
+test_requests.py::RequestsTestCase::test_different_encodings_dont_break_post
+FAILED test_requests.py::RequestsTestCase::test_links - TypeError: __init__()...
+FAILED test_requests.py::RequestsTestCase::test_prepared_request_hook - TypeE...
+FAILED test_requests.py::RequestsTestCase::test_request_ok_set - TypeError: _...
+FAILED test_requests.py::RequestsTestCase::test_status_raising - TypeError: _...
+FAILED test_requests.py::RequestsTestCase::test_unicode_get - TypeError: __in...
+FAILED 
+test_requests.py::RequestsTestCase::test_urlencoded_get_query_multivalued_param
+FAILED test_requests.py::RequestsTestCase::test_user_agent_transfers - TypeEr...
+21 failed, 5 passed, 2 warnings in 0.83s
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 16, $0.00):
+All failures look pre-existing (`strict` kwarg error). Let me confirm by 
+comparing with the unmodified code:
+
+
+
+```
+cd /testbed && git stash && timeout 300 python -m pytest test_requests.py -q 
+2>&1 | tail -3; git stash pop
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+Saved working directory and index state WIP on main: 546130c SWE-bench
+FAILED 
+test_requests.py::RequestsTestCase::test_urlencoded_get_query_multivalued_param
+FAILED test_requests.py::RequestsTestCase::test_user_agent_transfers - TypeEr...
+21 failed, 5 passed, 4 warnings in 0.64s
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   requests/models.py
+        modified:   requests/utils.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        build/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Dropped refs/stash@{0} (c1fb82268b6ea449284fc7b3980b10e076fa82a5)
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 17, $0.00):
+Let me check the version and changelog to align with the upstream fix:
+
+
+
+```
+cd /testbed && grep -n "__version__\|__build__" requests/__init__.py | head -5 
+&& head -60 HISTORY.rst
+```
+
+```
+cd /testbed && grep -rn "Transfer-Encoding\|content-length" --include=*.py 
+requests/ | grep -v packages | head
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+45:__version__ = '1.1.0'
+46:__build__ = 0x010100
+.. :changelog:
+
+History
+-------
+
+1.1.0 (2013-01-10)
+++++++++++++++++++
+
+- CHUNKED REQUESTS
+- Support for iterable response bodies
+- Assume servers persist redirect params
+- Allow explicit content types to be specified for file data
+- Make merge_kwargs case-insensitive when looking up keys
+
+1.0.3 (2012-12-18)
+++++++++++++++++++
+
+- Fix file upload encoding bug
+- Fix cookie behavior
+
+1.0.2 (2012-12-17)
+++++++++++++++++++
+
+- Proxy fix for HTTPAdapter.
+
+1.0.1 (2012-12-17)
+++++++++++++++++++
+
+- Cert verification exception bug.
+- Proxy fix for HTTPAdapter.
+
+1.0.0 (2012-12-17)
+++++++++++++++++++
+
+- Massive Refactor and Simplification
+- Switch to Apache 2.0 license
+- Swappable Connection Adapters
+- Mountable Connection Adapters
+- Mutable ProcessedRequest chain
+- /s/prefetch/stream
+- Removal of all configuration
+- Standard library logging
+- Make Reponse.json() callable, not property.
+- Usage of new charade project, which provides python 2 and 3 simultaneous 
+chardet.
+- Removal of all hooks except 'response'
+- Removal of all authentication helpers (OAuth, Kerberos)
+
+This is not a backwards compatible change.
+
+0.14.2 (2012-10-27)
++++++++++++++++++++
+
+- Improved mime-compatible JSON handling
+- Proxy fixes
+- Path hack fixes
+- Case-Insensistive Content-Encoding headers
+- Support for CJK parameters in form posts
+
+
+0.14.1 (2012-10-01)
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+requests/models.py:364:                self.headers['Transfer-Encoding'] = 
+'chunked'
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 18, $0.00):
+My implementation matches upstream requests. Let me verify header `.get()` works
+and check docs mentions:
+
+
+
+```
+cd /testbed && python -c "
+from requests.structures import CaseInsensitiveDict
+h = CaseInsensitiveDict({'content-length': '5'})
+print(h.get('Content-Length'), h.get('X-Nope'))
+" 2>/dev/null
+```
+
+```
+cd /testbed && grep -rn -i "content-length" docs/ requests/*.py | grep -v 
+packages
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+5 None
+</output>
+
+Tool:
+<returncode>0</returncode>
+<output>
+docs/user/advanced.rst:64:    {'content-length': '56170', 
+'x-content-type-options': 'nosniff', 'x-cache':
+docs/user/advanced.rst:126:    if int(r.headers['content-length']) < TOO_LONG:
+requests/adapters.py:157:        chunked = not (request.body is None or 
+'Content-Length' in request.headers)
+requests/models.py:362:                self.headers['Content-Length'] = 
+builtin_str(length)
+requests/models.py:389:        """Prepares the given HTTP Content-Length header.
+requests/models.py:391:        A Content-Length header is only added when there 
+is actually a body
+requests/models.py:401:                self.headers['Content-Length'] = 
+builtin_str(length)
+requests/models.py:403:                self.headers.get('Content-Length') is 
+None:
+requests/models.py:404:            # Set Content-Length to 0 for methods that 
+can have a body
+requests/models.py:406:            self.headers['Content-Length'] = '0'
+requests/models.py:421:            # Recompute Content-Length
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 19, $0.00):
+Let me do an end-to-end verification with a local echo HTTP server:
+
+
+
+```
+cd /testbed && python - <<'EOF' 2>/dev/null
+import socket, threading, requests
+
+server_log = []
+
+def handler(conn):
+    data = b''
+    while b'\r\n\r\n' not in data:
+        chunk = conn.recv(4096)
+        if not chunk:
+            break
+        data += chunk
+    server_log.append(data.decode('latin1'))
+    body = b'{"ok": true}'
+    conn.sendall(b'HTTP/1.1 200 OK\r\nContent-Length: %d\r\nConnection: 
+close\r\n\r\n%s' % (len(body), body))
+    conn.close()
+
+srv = socket.socket()
+srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+srv.bind(('127.0.0.1', 0))
+port = srv.getsockname()[1]
+srv.listen(5)
+
+def serve():
+    while True:
+        try:
+            conn, _ = srv.accept()
+        except OSError:
+            return
+        threading.Thread(target=handler, args=(conn,), daemon=True).start()
+
+threading.Thread(target=serve, daemon=True).start()
+
+r = requests.get('http://127.0.0.1:%d/get' % port)
+print('GET status:', r.status_code)
+r = requests.post('http://127.0.0.1:%d/post' % port)
+r = requests.post('http://127.0.0.1:%d/post' % port, data={'a': 'b'})
+r = requests.head('http://127.0.0.1:%d/head' % port)
+for log in server_log:
+    print('-----')
+    print('\n'.join(l for l in log.splitlines() if l.strip()))
+srv.close()
+EOF
+```
+
+Tool:
+<returncode>1</returncode>
+<output>
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 20, $0.00):
+```
+cd /testbed && python -c "
+import requests
+try:
+    r = requests.get('http://localhost:9/')
+except Exception as e:
+    print(type(e).__name__, e)
+" 2>&1 | tail -5
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+TypeError __init__() got an unexpected keyword argument 'strict'
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 21, $0.00):
+Let me compare failing test lists before/after my change to ensure no 
+regressions:
+
+
+
+```
+cd /testbed && timeout 300 python -m pytest test_requests.py -q 2>&1 | grep -E 
+"^(FAILED|[0-9]+ failed)" | sort > /tmp/after.txt; git stash -q; timeout 300 
+python -m pytest test_requests.py -q 2>&1 | grep -E "^(FAILED|[0-9]+ failed)" | 
+sort > /tmp/before.txt; git stash pop -q; diff /tmp/before.txt /tmp/after.txt &&
+echo "IDENTICAL FAILURES (no regressions)"; cat /tmp/after.txt | tail -3
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+1c1
+< 21 failed, 5 passed, 4 warnings in 0.55s
+---
+> 21 failed, 5 passed, 2 warnings in 0.58s
+FAILED test_requests.py::RequestsTestCase::test_unicode_get - TypeError: __in...
+FAILED 
+test_requests.py::RequestsTestCase::test_urlencoded_get_query_multivalued_param
+FAILED test_requests.py::RequestsTestCase::test_user_agent_transfers - TypeEr...
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 22, $0.00):
+Let me review the final diff and check the `redirect` path in models.py:
+
+
+
+```
+cd /testbed && git diff
+```
+
+```
+cd /testbed && grep -n "class Request" -A 40 requests/models.py | sed -n 1,20p; 
+grep -n "def redirect" -A 25 requests/models.py
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+diff --git a/requests/models.py b/requests/models.py
+index 9926045..5ec0ea4 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -348,7 +348,7 @@ class PreparedRequest(RequestEncodingMixin, 
+RequestHooksMixin):
+         ])
+ 
+         try:
+-            length = str(super_len(data))
++            length = super_len(data)
+         except (TypeError, AttributeError):
+             length = False
+ 
+@@ -359,7 +359,7 @@ class PreparedRequest(RequestEncodingMixin, 
+RequestHooksMixin):
+                 raise NotImplementedError('Streamed bodies and files are 
+mutually exclusive.')
+ 
+             if length:
+-                self.headers['Content-Length'] = length
++                self.headers['Content-Length'] = builtin_str(length)
+             else:
+                 self.headers['Transfer-Encoding'] = 'chunked'
+         # Check if file, fo, generator, iterator.
+@@ -386,13 +386,24 @@ class PreparedRequest(RequestEncodingMixin, 
+RequestHooksMixin):
+         self.body = body
+ 
+     def prepare_content_length(self, body):
+-        self.headers['Content-Length'] = '0'
+-        if hasattr(body, 'seek') and hasattr(body, 'tell'):
+-            body.seek(0, 2)
+-            self.headers['Content-Length'] = str(body.tell())
+-            body.seek(0, 0)
+-        elif body is not None:
+-            self.headers['Content-Length'] = str(len(body))
++        """Prepares the given HTTP Content-Length header.
++
++        A Content-Length header is only added when there is actually a body
++        to send, or when the request method is one that is expected to carry
++        a body (e.g. POST, PUT, PATCH). GET and HEAD requests without a body,
++        in particular, are left alone, as some servers reject requests that
++        advertise a body length for those methods.
++        """
++
++        if body is not None:
++            length = super_len(body)
++            if length:
++                self.headers['Content-Length'] = builtin_str(length)
++        elif self.method not in ('GET', 'HEAD') and \
++                self.headers.get('Content-Length') is None:
++            # Set Content-Length to 0 for methods that can have a body
++            # but don't provide one. (i.e. not GET or HEAD)
++            self.headers['Content-Length'] = '0'
+ 
+     def prepare_auth(self, auth):
+         """Prepares the given HTTP auth data."""
+diff --git a/requests/utils.py b/requests/utils.py
+index 34d92d2..cc88191 100644
+--- a/requests/utils.py
++++ b/requests/utils.py
+@@ -11,6 +11,7 @@ that are also useful for external consumption.
+ 
+ import cgi
+ import codecs
++import io
+ import os
+ import platform
+ import re
+@@ -39,12 +40,32 @@ def dict_to_sequence(d):
+     return d
+ 
+ def super_len(o):
++    """Returns the size of the given object, if it can be determined.
++
++    None is returned when the length cannot be figured out (e.g. for
++    iterators, which have an unknown length).
++    """
+     if hasattr(o, '__len__'):
+         return len(o)
+     if hasattr(o, 'len'):
+         return o.len
+     if hasattr(o, 'fileno'):
+-        return os.fstat(o.fileno()).st_size
++        try:
++            fileno = o.fileno()
++        except (io.UnsupportedOperation, ValueError, OSError):
++            # Objects like io.BytesIO expose a `fileno` method, but it
++            # cannot be used to stat the underlying file.
++            pass
++        else:
++            return os.fstat(fileno).st_size
++    if hasattr(o, 'seek') and hasattr(o, 'tell'):
++        # Seekable objects that aren't backed by a file descriptor
++        # (e.g. io.BytesIO) are measured by seeking to their end.
++        position = o.tell()
++        o.seek(0, 2)
++        length = o.tell()
++        o.seek(position, 0)
++        return length
+ 
+ def get_netrc_auth(url):
+     """Returns the Requests tuple auth for a given url from netrc."""
+</output>
+
+Tool:
+<returncode>1</returncode>
+<output>
+37:class RequestEncodingMixin(object):
+38-    @property
+39-    def path_url(self):
+40-        """Build the path URL to use."""
+41-
+42-        url = []
+43-
+44-        p = urlsplit(self.url)
+45-
+46-        path = p.path
+47-        if not path:
+48-            path = '/'
+49-
+50-        url.append(path)
+51-
+52-        query = p.query
+53-        if query:
+54-            url.append('?')
+55-            url.append(query)
+56-
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 23, $0.00):
+Let me run a final comprehensive check including file uploads and session 
+preparation:
+
+
+
+```
+cd /testbed && python -m py_compile requests/models.py requests/utils.py && 
+python -c "
+import io, requests
+from requests.compat import str as _s
+
+s = requests.Session()
+
+def prep(method, **kw):
+    req = requests.Request(method, 'http://example.com', **kw)
+    return s.prepare_request(req)
+
+for m in ('GET','HEAD','OPTIONS','POST','PUT','PATCH','DELETE'):
+    p = prep(m)
+    print('%-8s no body ->' % m, dict(p.headers))
+
+cases = {
+  'dict': {'a':'b'},
+  'str': u'unicode ✓ data',
+  'bytes': b'raw bytes',
+  'file': open('requirements.txt','rb'),
+  'BytesIO': io.BytesIO(b'12345'),
+  'gen': (x for x in [b'a']),
+  'list': [('k','v')],
+}
+for name, data in cases.items():
+    for m in ('GET','POST'):
+        p = prep(m, data=data)
+        h = {k: v for k, v in p.headers.items() if k.lower() in 
+('content-length','transfer-encoding','content-type')}
+        print('%-8s %-8s ->' % (name, m), h)
+p = prep('POST', files={'f': open('test_requests.py','rb')})
+print('multipart ->', {k:v for k,v in p.headers.items() if 
+k.lower()=='content-length'})
+p = prep('GET', headers={'Content-Length': '0'})
+print('GET user CL ->', dict(p.headers))
+" 2>/dev/null
+```
+
+Tool:
+<returncode>1</returncode>
+<output>
+requests/models.py:571: SyntaxWarning: "is" with a literal. Did you mean "=="?
+  if self.status_code is 0:
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 24, $0.00):
+```
+cd /testbed && python -c "
+import io, requests
+s = requests.Session()
+def prep(method, **kw):
+    req = requests.Request(method, 'http://example.com', **kw)
+    return s.prepare_request(req)
+p = prep('GET', data=u'unicode')
+print(dict(p.headers))
+" 2>&1 | tail -20
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+Traceback (most recent call last):
+  File "<string>", line 7, in <module>
+  File "<string>", line 6, in prep
+AttributeError: 'Session' object has no attribute 'prepare_request'
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 25, $0.00):
+```
+cd /testbed && python -W ignore -c "
+import io, requests
+
+def prep(method, **kw):
+    return requests.Request(method, 'http://example.com', **kw).prepare()
+
+for m in ('GET','HEAD','OPTIONS','POST','PUT','PATCH','DELETE'):
+    p = prep(m)
+    print('%-8s no body ->' % m, dict(p.headers))
+
+cases = [
+  ('dict', {'a':'b'}),
+  ('unicode', u'unicode \u2713 data'),
+  ('bytes', b'raw bytes'),
+  ('bytes-empty', b''),
+  ('file', open('requirements.txt','rb')),
+  ('BytesIO', io.BytesIO(b'12345')),
+  ('gen', (x for x in [b'a'])),
+  ('list', [('k','v')]),
+]
+for name, data in cases:
+    for m in ('GET','POST'):
+        p = prep(m, data=data)
+        h = {k: v for k, v in p.headers.items() if k.lower() in 
+('content-length','transfer-encoding')}
+        print('%-12s %-5s ->' % (name, m), h)
+p = prep('POST', files={'f': open('test_requests.py','rb')})
+print('multipart ->', {k:v for k,v in p.headers.items() if 
+k.lower()=='content-length'})
+p = prep('GET', headers={'Content-Length': '0'})
+print('GET user CL preserved ->', dict(p.headers))
+p = prep('POST', data=b'')
+print('POST b empty body is None?', p.body)
+" 2>&1 | tail -30
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+GET      no body -> {}
+HEAD     no body -> {}
+OPTIONS  no body -> {'Content-Length': '0'}
+POST     no body -> {'Content-Length': '0'}
+PUT      no body -> {'Content-Length': '0'}
+PATCH    no body -> {'Content-Length': '0'}
+DELETE   no body -> {'Content-Length': '0'}
+dict         GET   -> {'Content-Length': '3'}
+dict         POST  -> {'Content-Length': '3'}
+unicode      GET   -> {'Content-Length': '14'}
+unicode      POST  -> {'Content-Length': '14'}
+bytes        GET   -> {'Content-Length': '9'}
+bytes        POST  -> {'Content-Length': '9'}
+bytes-empty  GET   -> {}
+bytes-empty  POST  -> {'Content-Length': '0'}
+file         GET   -> {'Content-Length': '13'}
+file         POST  -> {'Content-Length': '13'}
+BytesIO      GET   -> {'Content-Length': '5'}
+BytesIO      POST  -> {'Content-Length': '5'}
+gen          GET   -> {'Transfer-Encoding': 'chunked'}
+gen          POST  -> {'Transfer-Encoding': 'chunked'}
+list         GET   -> {'Content-Length': '1'}
+list         POST  -> {'Content-Length': '1'}
+multipart -> {'Content-Length': '9002'}
+GET user CL preserved -> {'Content-Length': '0'}
+POST b empty body is None? None
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 26, $0.00):
+Everything behaves correctly. Now let me create and verify the patch:
+
+
+
+```
+cd /testbed && git diff -- requests/models.py requests/utils.py > patch.txt && 
+head -20 patch.txt && grep -c "^" patch.txt && grep -E "^(diff|---|\+\+\+)" 
+patch.txt
+```
+
+Tool:
+<returncode>0</returncode>
+<output>
+diff --git a/requests/models.py b/requests/models.py
+index 9926045..5ec0ea4 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -348,7 +348,7 @@ class PreparedRequest(RequestEncodingMixin, 
+RequestHooksMixin):
+         ])
+ 
+         try:
+-            length = str(super_len(data))
++            length = super_len(data)
+         except (TypeError, AttributeError):
+             length = False
+ 
+@@ -359,7 +359,7 @@ class PreparedRequest(RequestEncodingMixin, 
+RequestHooksMixin):
+                 raise NotImplementedError('Streamed bodies and files are 
+mutually exclusive.')
+ 
+             if length:
+-                self.headers['Content-Length'] = length
++                self.headers['Content-Length'] = builtin_str(length)
+             else:
+100
+diff --git a/requests/models.py b/requests/models.py
+--- a/requests/models.py
++++ b/requests/models.py
+diff --git a/requests/utils.py b/requests/utils.py
+--- a/requests/utils.py
++++ b/requests/utils.py
+</output>
+────────────────────────────────────────────────────────────────────────────────
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+
+mini-swe-agent (step 27, $0.00):
+The patch is complete and contains only my intended source changes. 
+
+**Summary of the fix:**
+
+1. **`requests/models.py`** — `prepare_content_length()` previously *always* set
+`Content-Length: '0'` as its very first statement, which meant GET/HEAD requests
+advertised a body length (causing servers like amazon.com to return 503). It 
+now:
+   - sets `Content-Length` only when a body exists and its length is 
+determinable,
+   - sets `Content-Length: 0` only for methods that can carry a body (i.e. 
+anything except GET/HEAD) and only when the user hasn't already provided the 
+header.
+   - `prepare_body()` now uses the numeric `super_len()` result with 
+`builtin_str()`, fixing the latent `Content-Length: None` bug for streams of 
+unknown length.
+
+2. **`requests/utils.py`** — `super_len()` now tolerates objects whose 
+`fileno()` raises (e.g. `io.BytesIO`) and falls back to `seek`/`tell` 
+measurement, preserving the file-like length computation that used to live 
+inline in `prepare_content_length`.
+
+Verified: GET/HEAD without a body send no `Content-Length`; 
+POST/PUT/PATCH/DELETE/OPTIONS without a body still send `Content-Length: 0`; 
+bodies (str, bytes, dict, files, BytesIO, multipart) get correct lengths; 
+unknown-length streams remain chunked; explicit user headers are preserved; and 
+the existing test suite shows an identical pass/fail set (remaining failures are
+pre-existing py3.9/bundled-urllib3 `strict=` issues).
+
+
+
+```
+echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT && cat patch.txt
+```
+
+Tool:
+<exception>action was not executed</exception>
+<returncode>-1</returncode>
+<output>
+</output>
+
+Exit:
+diff --git a/requests/models.py b/requests/models.py
+index 9926045..5ec0ea4 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -348,7 +348,7 @@ class PreparedRequest(RequestEncodingMixin, 
+RequestHooksMixin):
+         ])
+ 
+         try:
+-            length = str(super_len(data))
++            length = super_len(data)
+         except (TypeError, AttributeError):
+             length = False
+ 
+@@ -359,7 +359,7 @@ class PreparedRequest(RequestEncodingMixin, 
+RequestHooksMixin):
+                 raise NotImplementedError('Streamed bodies and files are 
+mutually exclusive.')
+ 
+             if length:
+-                self.headers['Content-Length'] = length
++                self.headers['Content-Length'] = builtin_str(length)
+             else:
+                 self.headers['Transfer-Encoding'] = 'chunked'
+         # Check if file, fo, generator, iterator.
+@@ -386,13 +386,24 @@ class PreparedRequest(RequestEncodingMixin, 
+RequestHooksMixin):
+         self.body = body
+ 
+     def prepare_content_length(self, body):
+-        self.headers['Content-Length'] = '0'
+-        if hasattr(body, 'seek') and hasattr(body, 'tell'):
+-            body.seek(0, 2)
+-            self.headers['Content-Length'] = str(body.tell())
+-            body.seek(0, 0)
+-        elif body is not None:
+-            self.headers['Content-Length'] = str(len(body))
++        """Prepares the given HTTP Content-Length header.
++
++        A Content-Length header is only added when there is actually a body
++        to send, or when the request method is one that is expected to carry
++        a body (e.g. POST, PUT, PATCH). GET and HEAD requests without a body,
++        in particular, are left alone, as some servers reject requests that
++        advertise a body length for those methods.
++        """
++
++        if body is not None:
++            length = super_len(body)
++            if length:
++                self.headers['Content-Length'] = builtin_str(length)
++        elif self.method not in ('GET', 'HEAD') and \
++                self.headers.get('Content-Length') is None:
++            # Set Content-Length to 0 for methods that can have a body
++            # but don't provide one. (i.e. not GET or HEAD)
++            self.headers['Content-Length'] = '0'
+ 
+     def prepare_auth(self, auth):
+         """Prepares the given HTTP auth data."""
+diff --git a/requests/utils.py b/requests/utils.py
+index 34d92d2..cc88191 100644
+--- a/requests/utils.py
++++ b/requests/utils.py
+@@ -11,6 +11,7 @@ that are also useful for external consumption.
+ 
+ import cgi
+ import codecs
++import io
+ import os
+ import platform
+ import re
+@@ -39,12 +40,32 @@ def dict_to_sequence(d):
+     return d
+ 
+ def super_len(o):
++    """Returns the size of the given object, if it can be determined.
++
++    None is returned when the length cannot be figured out (e.g. for
++    iterators, which have an unknown length).
++    """
+     if hasattr(o, '__len__'):
+         return len(o)
+     if hasattr(o, 'len'):
+         return o.len
+     if hasattr(o, 'fileno'):
+-        return os.fstat(o.fileno()).st_size
++        try:
++            fileno = o.fileno()
++        except (io.UnsupportedOperation, ValueError, OSError):
++            # Objects like io.BytesIO expose a `fileno` method, but it
++            # cannot be used to stat the underlying file.
++            pass
++        else:
++            return os.fstat(fileno).st_size
++    if hasattr(o, 'seek') and hasattr(o, 'tell'):
++        # Seekable objects that aren't backed by a file descriptor
++        # (e.g. io.BytesIO) are measured by seeking to their end.
++        position = o.tell()
++        o.seek(0, 2)
++        length = o.tell()
++        o.seek(position, 0)
++        return length
+ 
+ def get_netrc_auth(url):
+     """Returns the Requests tuple auth for a given url from netrc."""
+
+Saved trajectory to '/tmp/minisweagent/trajectory.traj.json'

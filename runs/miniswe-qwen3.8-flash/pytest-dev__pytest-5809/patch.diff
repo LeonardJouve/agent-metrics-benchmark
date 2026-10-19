@@ -1,0 +1,47 @@
+diff --git a/changelog/5764.bugfix.rst b/changelog/5764.bugfix.rst
+new file mode 100644
+index 000000000..c7e2523ee
+--- /dev/null
++++ b/changelog/5764.bugfix.rst
+@@ -0,0 +1 @@
++Fixed ``--pastebin`` failing with "HTTP Error 400: Bad Request" for some terminal output: the contents are now sent to bpaste.net using the ``text`` lexer (the output of a ``pytest`` run is arbitrary text, not Python code) and any error while uploading is now reported as part of the output instead of raising an exception.
+diff --git a/src/_pytest/pastebin.py b/src/_pytest/pastebin.py
+index 41576a615..1eb9ad94b 100644
+--- a/src/_pytest/pastebin.py
++++ b/src/_pytest/pastebin.py
+@@ -67,7 +67,7 @@ def create_new_paste(contents):
+     Creates a new paste using bpaste.net service.
+ 
+     :contents: paste contents as utf-8 encoded bytes
+-    :returns: url to the pasted contents
++    :returns: url to the pasted contents or error message on failure
+     """
+     import re
+ 
+@@ -77,18 +77,18 @@ def create_new_paste(contents):
+         from urllib.request import urlopen
+         from urllib.parse import urlencode
+ 
+-    params = {
+-        "code": contents,
+-        "lexer": "python3" if sys.version_info[0] >= 3 else "python",
+-        "expiry": "1week",
+-    }
++    params = {"code": contents, "lexer": "text", "expiry": "1week"}
+     url = "https://bpaste.net"
+-    response = urlopen(url, data=urlencode(params).encode("ascii")).read()
+-    m = re.search(r'href="/raw/(\w+)"', response.decode("utf-8"))
++    try:
++        url_open = urlopen(url, data=urlencode(params).encode("ascii"))
++        response = url_open.read().decode("utf-8")
++    except OSError as exc_info:  # urllib errors
++        return "bad response: %s" % (exc_info,)
++    m = re.search(r'href="/raw/(\w+)"', response)
+     if m:
+         return "%s/show/%s" % (url, m.group(1))
+     else:
+-        return "bad response: " + response
++        return "bad response: invalid format ('%s')" % (response,)
+ 
+ 
+ def pytest_terminal_summary(terminalreporter):

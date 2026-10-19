@@ -1,0 +1,76 @@
+diff --git a/ChangeLog b/ChangeLog
+index 97af302a..30606fa5 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -65,6 +65,10 @@ Release date: TBA
+ 
+ * Extended ``consider-using-in`` check to work for attribute access.
+ 
++* Setting ``min-similarity-lines`` to 0 now makes the similarity checker stop checking for duplicate code
++
++  Closes #4901
++
+ 
+ What's New in Pylint 2.10.3?
+ ============================
+diff --git a/doc/whatsnew/2.11.rst b/doc/whatsnew/2.11.rst
+index 72dc75e7..36e9eab4 100644
+--- a/doc/whatsnew/2.11.rst
++++ b/doc/whatsnew/2.11.rst
+@@ -71,3 +71,7 @@ Other Changes
+   Closes #4907
+ 
+ * Extended ``consider-using-in`` check to work for attribute access.
++
++* Setting ``min-similarity-lines`` to 0 now makes the similarity checker stop checking for duplicate code
++
++  Closes #4901
+diff --git a/pylint/checkers/similar.py b/pylint/checkers/similar.py
+index c65b1c89..1c80c5ab 100644
+--- a/pylint/checkers/similar.py
++++ b/pylint/checkers/similar.py
+@@ -368,8 +368,20 @@ class Similar:
+         self.ignore_signatures = ignore_signatures
+         self.linesets: List["LineSet"] = []
+ 
++    @property
++    def _is_disabled(self) -> bool:
++        """Whether the duplicate code check has been disabled.
++
++        A minimum number of similar lines of zero means that nothing should be
++        checked for duplication, as is the case for the other linters settings
++        where zero disables the check.
++        """
++        return self.min_lines <= 0
++
+     def append_stream(self, streamid: str, stream: TextIO, encoding=None) -> None:
+         """append a file to search for similarities"""
++        if self._is_disabled:
++            return
+         if encoding is None:
+             readlines = stream.readlines
+         else:
+@@ -390,10 +402,14 @@ class Similar:
+ 
+     def run(self) -> None:
+         """start looking for similarities and display results on stdout"""
++        if self._is_disabled:
++            return
+         self._display_sims(self._compute_sims())
+ 
+     def _compute_sims(self) -> List[Tuple[int, Set[LinesChunkLimits_T]]]:
+         """compute similarities in appended files"""
++        if self._is_disabled:
++            return []
+         no_duplicates: Dict[int, List[Set[LinesChunkLimits_T]]] = defaultdict(list)
+ 
+         for commonality in self._iter_sims():
+@@ -830,6 +846,8 @@ class SimilarChecker(BaseChecker, Similar, MapReduceMixin):
+ 
+     def close(self):
+         """compute and display similarities on closing (i.e. end of parsing)"""
++        if self._is_disabled:
++            return
+         total = sum(len(lineset) for lineset in self.linesets)
+         duplicated = 0
+         stats = self.stats

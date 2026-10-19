@@ -1,0 +1,36 @@
+diff --git a/astropy/units/decorators.py b/astropy/units/decorators.py
+index 8bece5a85..d5205af1d 100644
+--- a/astropy/units/decorators.py
++++ b/astropy/units/decorators.py
+@@ -134,6 +134,10 @@ class QuantityInput:
+             def myfunction(myangle: u.arcsec) -> u.deg**2:
+                 return myangle**2
+ 
++        A return annotation of ``None`` (as is usual for, e.g., ``__init__``
++        methods) means that the function does not return anything, and so no
++        unit conversion or check of the return value is performed.
++
+         Using equivalencies::
+ 
+             import astropy.units as u
+@@ -220,10 +224,17 @@ class QuantityInput:
+             # Call the original function with any equivalencies in force.
+             with add_enabled_equivalencies(self.equivalencies):
+                 return_ = wrapped_function(*func_args, **func_kwargs)
+-            if wrapped_signature.return_annotation is not inspect.Signature.empty:
+-                return return_.to(wrapped_signature.return_annotation)
+-            else:
++
++            # Check the return annotation, if any.  An annotation of ``None``
++            #   (as is usual for, e.g., ``__init__`` methods) means that
++            #   nothing is returned, so, like an absent annotation, there is
++            #   no unit to convert the output to.
++            return_annotation = wrapped_signature.return_annotation
++            if (return_annotation is inspect.Signature.empty
++                    or return_annotation is None):
+                 return return_
++            else:
++                return return_.to(return_annotation)
+ 
+         return wrapper
+ 

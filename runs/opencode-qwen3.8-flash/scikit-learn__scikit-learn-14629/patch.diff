@@ -1,0 +1,78 @@
+diff --git a/doc/whats_new/v0.22.rst b/doc/whats_new/v0.22.rst
+index fe19557df..ad5e09095 100644
+--- a/doc/whats_new/v0.22.rst
++++ b/doc/whats_new/v0.22.rst
+@@ -251,6 +251,12 @@ Changelog
+ - |Enhancement| :class:`model_selection.RandomizedSearchCV` now accepts lists
+   of parameter distributions. :pr:`14549` by `Andreas Müller`_.
+ 
++- |Fix| :func:`model_selection.cross_val_predict` now works with estimators
++  which return a list of arrays, one per output, from ``predict_proba``,
++  ``predict_log_proba`` or ``decision_function``, such as
++  :class:`multioutput.MultiOutputClassifier`, instead of raising an
++  ``AttributeError``. :issue:`14116`
++
+ :mod:`sklearn.pipeline`
+ .......................
+ 
+diff --git a/sklearn/model_selection/_validation.py b/sklearn/model_selection/_validation.py
+index 95669a212..e59edb2af 100644
+--- a/sklearn/model_selection/_validation.py
++++ b/sklearn/model_selection/_validation.py
+@@ -855,8 +855,9 @@ def _fit_and_predict(estimator, X, y, train, test, verbose, fit_params,
+     predictions = func(X_test)
+     if method in ['decision_function', 'predict_proba', 'predict_log_proba']:
+         if isinstance(predictions, list):
++            classes = _get_classes_per_output(estimator, method)
+             predictions = [_enforce_prediction_order(
+-                estimator.classes_[i_label], predictions[i_label],
++                classes[i_label], predictions[i_label],
+                 n_classes=len(set(y[:, i_label])), method=method)
+                 for i_label in range(len(predictions))]
+         else:
+@@ -867,6 +868,45 @@ def _fit_and_predict(estimator, X, y, train, test, verbose, fit_params,
+     return predictions, test
+ 
+ 
++def _get_classes_per_output(estimator, method):
++    """Get the classes of each output of a fitted multioutput estimator.
++
++    Estimators which handle multioutput-multiclass targets natively store one
++    array of classes per output in their ``classes_`` attribute. Meta
++    estimators, such as :class:`sklearn.multioutput.MultiOutputClassifier`, do
++    not define ``classes_``: the classes of each output are then stored on the
++    estimators they wrap.
++
++    Parameters
++    ----------
++    estimator : estimator object
++        The fitted estimator to get the classes from.
++
++    method : string
++        The name of the prediction method called on ``estimator``. Used in
++        the error message.
++
++    Returns
++    -------
++    classes : list of length n_outputs, each an array of shape (n_classes,)
++        The classes used to fit each of the outputs.
++    """
++    if hasattr(estimator, 'classes_'):
++        classes = estimator.classes_
++    elif hasattr(estimator, 'estimators_'):
++        classes = [getattr(est, 'classes_', None)
++                   for est in estimator.estimators_]
++    else:
++        classes = None
++    if classes is None or any(est_classes is None
++                              for est_classes in classes):
++        raise AttributeError(
++            "Estimator {} does not expose the classes used to fit each of "
++            "its outputs: its output of {} cannot be reordered to match the "
++            "classes of the whole target.".format(estimator, method))
++    return list(classes)
++
++
+ def _enforce_prediction_order(classes, predictions, n_classes, method):
+     """Ensure that prediction arrays have correct column order
+ 

@@ -1,0 +1,70 @@
+diff --git a/CHANGES b/CHANGES
+index 7037723fe..581c22a51 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -72,6 +72,8 @@ Bugs fixed
+   bulding texinfo document
+ * #10000: LaTeX: glossary terms with common definition are rendered with
+   too much vertical whitespace
++* #10318: ``:prepend:`` option of :rst:dir:`literalinclude` directive does not
++  work with ``:dedent:`` option
+ 
+ Testing
+ --------
+diff --git a/doc/usage/restructuredtext/directives.rst b/doc/usage/restructuredtext/directives.rst
+index d1877bca0..00ac997a1 100644
+--- a/doc/usage/restructuredtext/directives.rst
++++ b/doc/usage/restructuredtext/directives.rst
+@@ -731,6 +731,23 @@ __ https://pygments.org/docs/lexers
+    ``prepend`` and ``append`` option, respectively.  This is useful e.g. for
+    highlighting PHP code that doesn't include the ``<?php``/``?>`` markers.
+ 
++   The ``dedent`` option is only applied to the lines read from the included
++   file, so prepended and appended lines are inserted as given.  For example,
++   to wrap a part of an XML file in an enclosing element, dedent the file's
++   content and indent the added lines yourself::
++
++      .. literalinclude:: example.xml
++         :language: xml
++         :start-at: <bar>
++         :end-at: </bar>
++         :dedent: 4
++         :prepend: <foo>
++         :append: </foo>
++
++   .. versionchanged:: 5.0
++      The ``dedent`` option no longer affects the ``prepend`` and ``append``
++      options.
++
+    If you want to show the diff of the code, you can specify the old file by
+    giving a ``diff`` option::
+ 
+diff --git a/sphinx/directives/code.py b/sphinx/directives/code.py
+index dc44ed314..9437fe9a5 100644
+--- a/sphinx/directives/code.py
++++ b/sphinx/directives/code.py
+@@ -224,9 +224,9 @@ class LiteralIncludeReader:
+                        self.start_filter,
+                        self.end_filter,
+                        self.lines_filter,
++                       self.dedent_filter,
+                        self.prepend_filter,
+-                       self.append_filter,
+-                       self.dedent_filter]
++                       self.append_filter]
+             lines = self.read_file(self.filename, location=location)
+             for func in filters:
+                 lines = func(lines, location=location)
+diff --git a/tox.ini b/tox.ini
+index f0afd779b..30ca90275 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -28,7 +28,7 @@ setenv =
+     PYTHONWARNINGS = all
+     PYTEST_ADDOPTS = {env:PYTEST_ADDOPTS:} --color yes
+ commands=
+-    python -X dev -m pytest --durations 25 {posargs}
++    python -X dev -m pytest -rA --durations 25 {posargs}
+ 
+ [testenv:du-latest]
+ commands =

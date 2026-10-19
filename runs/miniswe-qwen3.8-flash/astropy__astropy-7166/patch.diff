@@ -1,0 +1,58 @@
+diff --git a/CHANGES.rst b/CHANGES.rst
+index 4b73e1267..3abbd3640 100644
+--- a/CHANGES.rst
++++ b/CHANGES.rst
+@@ -218,6 +218,8 @@ astropy.units
+ astropy.utils
+ ^^^^^^^^^^^^^
+ 
++- ``InheritDocstrings`` now also works on class properties. [#7166]
++
+ astropy.visualization
+ ^^^^^^^^^^^^^^^^^^^^^
+ 
+diff --git a/astropy/utils/misc.py b/astropy/utils/misc.py
+index de3fb01d1..ecaa171bf 100644
+--- a/astropy/utils/misc.py
++++ b/astropy/utils/misc.py
+@@ -518,6 +518,10 @@ class InheritDocstrings(type):
+         ...         pass
+         >>> B.wiggle.__doc__
+         u'Wiggle the thingamajig'
++
++    Note that properties are handled in the same way as methods, so that
++    docstrings of overridden properties are inherited by the properties
++    that replace them in subclasses.
+     """
+ 
+     def __init__(cls, name, bases, dct):
+@@ -528,13 +532,27 @@ class InheritDocstrings(type):
+                 not key.startswith('_'))
+ 
+         for key, val in dct.items():
+-            if (inspect.isfunction(val) and
++            if ((inspect.isfunction(val) or inspect.isdatadescriptor(val)) and
+                 is_public_member(key) and
+                 val.__doc__ is None):
+                 for base in cls.__mro__[1:]:
+                     super_method = getattr(base, key, None)
+                     if super_method is not None:
+-                        val.__doc__ = super_method.__doc__
++                        try:
++                            val.__doc__ = super_method.__doc__
++                        except (AttributeError, TypeError):
++                            # Some descriptors, such as ``property``, do not
++                            # always allow their docstring to be modified once
++                            # they have been created.  In that case a new
++                            # property holding the inherited docstring is
++                            # created instead -- this is not done for
++                            # subclasses of ``property`` since those may need
++                            # to be rebuilt in a subclass-specific way.
++                            if type(val) is property:
++                                setattr(cls, key,
++                                        property(val.fget, val.fset,
++                                                 val.fdel,
++                                                 super_method.__doc__))
+                         break
+ 
+         super().__init__(name, bases, dct)

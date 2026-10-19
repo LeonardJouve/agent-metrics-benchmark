@@ -1,0 +1,100 @@
+diff --git a/requests/models.py b/requests/models.py
+index 9926045..5ec0ea4 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -348,7 +348,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+         ])
+ 
+         try:
+-            length = str(super_len(data))
++            length = super_len(data)
+         except (TypeError, AttributeError):
+             length = False
+ 
+@@ -359,7 +359,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+                 raise NotImplementedError('Streamed bodies and files are mutually exclusive.')
+ 
+             if length:
+-                self.headers['Content-Length'] = length
++                self.headers['Content-Length'] = builtin_str(length)
+             else:
+                 self.headers['Transfer-Encoding'] = 'chunked'
+         # Check if file, fo, generator, iterator.
+@@ -386,13 +386,24 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+         self.body = body
+ 
+     def prepare_content_length(self, body):
+-        self.headers['Content-Length'] = '0'
+-        if hasattr(body, 'seek') and hasattr(body, 'tell'):
+-            body.seek(0, 2)
+-            self.headers['Content-Length'] = str(body.tell())
+-            body.seek(0, 0)
+-        elif body is not None:
+-            self.headers['Content-Length'] = str(len(body))
++        """Prepares the given HTTP Content-Length header.
++
++        A Content-Length header is only added when there is actually a body
++        to send, or when the request method is one that is expected to carry
++        a body (e.g. POST, PUT, PATCH). GET and HEAD requests without a body,
++        in particular, are left alone, as some servers reject requests that
++        advertise a body length for those methods.
++        """
++
++        if body is not None:
++            length = super_len(body)
++            if length:
++                self.headers['Content-Length'] = builtin_str(length)
++        elif self.method not in ('GET', 'HEAD') and \
++                self.headers.get('Content-Length') is None:
++            # Set Content-Length to 0 for methods that can have a body
++            # but don't provide one. (i.e. not GET or HEAD)
++            self.headers['Content-Length'] = '0'
+ 
+     def prepare_auth(self, auth):
+         """Prepares the given HTTP auth data."""
+diff --git a/requests/utils.py b/requests/utils.py
+index 34d92d2..cc88191 100644
+--- a/requests/utils.py
++++ b/requests/utils.py
+@@ -11,6 +11,7 @@ that are also useful for external consumption.
+ 
+ import cgi
+ import codecs
++import io
+ import os
+ import platform
+ import re
+@@ -39,12 +40,32 @@ def dict_to_sequence(d):
+     return d
+ 
+ def super_len(o):
++    """Returns the size of the given object, if it can be determined.
++
++    None is returned when the length cannot be figured out (e.g. for
++    iterators, which have an unknown length).
++    """
+     if hasattr(o, '__len__'):
+         return len(o)
+     if hasattr(o, 'len'):
+         return o.len
+     if hasattr(o, 'fileno'):
+-        return os.fstat(o.fileno()).st_size
++        try:
++            fileno = o.fileno()
++        except (io.UnsupportedOperation, ValueError, OSError):
++            # Objects like io.BytesIO expose a `fileno` method, but it
++            # cannot be used to stat the underlying file.
++            pass
++        else:
++            return os.fstat(fileno).st_size
++    if hasattr(o, 'seek') and hasattr(o, 'tell'):
++        # Seekable objects that aren't backed by a file descriptor
++        # (e.g. io.BytesIO) are measured by seeking to their end.
++        position = o.tell()
++        o.seek(0, 2)
++        length = o.tell()
++        o.seek(position, 0)
++        return length
+ 
+ def get_netrc_auth(url):
+     """Returns the Requests tuple auth for a given url from netrc."""
