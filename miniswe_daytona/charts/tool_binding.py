@@ -3,7 +3,7 @@
 Every 1 s sample of every task is classified inside vs outside a tool-call window
 (from trajectory.traj.json). Panels: violins of CPU % / memory % per model.
 
-Usage: uv run python charts/tool_binding.py
+Usage: uv run python -m miniswe_daytona.charts.tool_binding
 """
 from __future__ import annotations
 
@@ -13,7 +13,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from taskplot import _epoch, load_samples, load_tool_windows
+from miniswe_daytona.charts.taskplot import load_tool_windows
+from shared.plot import _epoch, load_samples
 
 DEFAULT_MODELS = ["qwen3.8-flash", "deepseek-v4-flash-0731"]
 
@@ -60,8 +61,8 @@ def collect(model_dir: Path):
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=DEFAULT_MODELS)
-    ap.add_argument("--runs", type=Path, default=Path("runs"))
-    ap.add_argument("-o", "--out", type=Path, default=Path("images/tool-binding.png"))
+    ap.add_argument("--runs", type=Path, default=Path("miniswe_daytona/runs"))
+    ap.add_argument("-o", "--out", type=Path, default=Path("miniswe_daytona/images/tool-binding.png"))
     ap.add_argument("--dpi", type=int, default=100)
     args = ap.parse_args()
 

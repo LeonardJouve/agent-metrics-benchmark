@@ -4,7 +4,7 @@ Per run, per consecutive pair (tool response -> next assistant tool submission) 
 trajectory.traj.json extra.timestamp deltas. One stacked figure: one panel per model,
 qwen on top, deepseek below. Bars = per-task mean gap, error bars = std, dashed = model mean.
 
-Usage: uv run python charts/tool_gaps.py
+Usage: uv run python -m miniswe_daytona.charts.tool_gaps
 """
 from __future__ import annotations
 
@@ -64,8 +64,8 @@ def _panel(ax: plt.Axes, model: str, tasks: list[tuple[str, list[float]]]) -> No
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=DEFAULT_MODELS)
-    ap.add_argument("--runs", type=Path, default=Path("runs"))
-    ap.add_argument("-o", "--out", type=Path, default=Path("images/tool-gaps.png"))
+    ap.add_argument("--runs", type=Path, default=Path("miniswe_daytona/runs"))
+    ap.add_argument("-o", "--out", type=Path, default=Path("miniswe_daytona/images/tool-gaps.png"))
     ap.add_argument("--dpi", type=int, default=100)
     args = ap.parse_args()
 

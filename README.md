@@ -1,21 +1,44 @@
 # Agent System Metrics Benchmark
 
-Benchmark of agent runtime resource use (CPU/RAM). Measures Python coding agents on Daytona sandboxes. Output: data for CPU/RAM allocation.
+Benchmark of coding-agent runtime resource use (CPU/RAM), to size CPU/RAM allocation. Three experiments, same tasks and models:
 
-## Conditions
+| # | Folder | Agent | Where | What is measured |
+|---|---|---|---|---|
+| 1 | [`miniswe_daytona/`](miniswe_daytona/README.md) | mini-swe-agent 2.4.6 | Daytona sandbox, 4 vCPU / 4 GiB | whole sandbox (agent + tools together), 1 s samples |
+| 2 | [`opencode_tools/`](opencode_tools/README.md) | opencode 1.19.2 | local Docker, one container per bash call | harness (agent) and every tool call separately |
+| 3 | [`miniswe_tools/`](miniswe_tools/README.md) | mini-swe-agent 2.4.6 | local Docker, one container per bash call | harness (agent) and every tool call separately |
+
+Experiments 1 and 3 run the same agent with the same config, so comparing them shows what the per-tool split changes. Experiments 2 and 3 share one harness, so comparing them shows what the agent changes.
+
+## Layout
+
+```
+shared/              used by all three experiments
+  runner.py          dataset loading, task × model pool, status.json/phases, MODELS, mini-swe-agent config,
+                     metrics.sh paths and summary, 45 min cap
+  metrics.sh         cgroup v2 collector, 1 s samples → metrics.jsonl
+  plot.py            chart helpers: load metrics.jsonl, dataset order
+  dataset/           build_dataset.py → sample20.csv (the 20 tasks); one.csv (1-task smoke test)
+local_harness/       shared by experiments 2 and 3 only
+  local_benchmark.py runner: harness container + tool server, `opencode` or `miniswe`
+  harness.Dockerfile both agents in one image
+  tool_client.py     the agents' bash: forwards each command to a fresh tool container
+  session_chart.py   one session: harness + tool containers
+  session_grid.py    task × model grid
+miniswe_daytona/     experiment 1: benchmark.py, charts/, runs/, images/
+opencode_tools/      experiment 2: opencode.json, runs/, images/
+miniswe_tools/       experiment 3: mini_env.py, runs/, images/
+tests/               test_runner.py (shared), test_metrics_script.py (shared), test_build_dataset.py (shared),
+                     test_benchmark.py (exp 1), test_tool_server.py (exps 2+3)
+```
+
+Each experiment stores runs as `<exp>/runs/<model>/<instance_id>/` and charts in `<exp>/images/`.
+
+## Common conditions
 
 - Tasks: 20 SWE-bench Verified Python tasks (config `default`, split `test`; seed 42, round-robin by repo; only <1h-rated, Docker Hub image ≤2 GB).
-- Models: Qwen3.8 Flash + DeepSeek V4 Flash → matrix 20 × 2 = 40 runs, 1 run/task/model, no reruns.
-- Sandbox: 4 vCPU / 4 GiB / 10 GiB disk.
-- Concurrency: 2 sandboxes (`BATCH_SIZE`). Sampling: 1s. Run cap: 45 min, censored if hit.
-- Cleanup: export artifacts, then delete sandbox.
-
-## Tools
-
-- mini-SWE-agent 2.4.6 — in-sandbox `/opt/minisweagent`, `local` mode, no nested Docker
-- Daytona Cloud — sandbox runner/profiler
-- Python + uv — `benchmark.py` (matrix runner), `build_dataset.py` (dataset builder)
-- cgroup v2 collector — `metrics.sh` (1s sampling)
+- Models: Qwen3.8 Flash + DeepSeek V4 Flash via the Qwen token plan → 20 × 2 = 40 runs per experiment, 1 run per task and model, no reruns.
+- Run cap: 45 min, censored if hit. Sampling: 1 s.
 
 ## Config
 
@@ -23,45 +46,25 @@ Env vars only (copy `.env.example` to `.env`, export it):
 
 | Variable | Meaning |
 |---|---|
-| `DATASET_PATH` | Dataset CSV; default `./data/sample20.csv`. All rows × all models run. |
-| `BATCH_SIZE` | Concurrent sandboxes; default `2`. |
-| `DAYTONA_API_KEY` | Required; runner fails before creating sandboxes if missing. |
-| `QWEN_TOKEN_PLAN_API_KEY` | Required; provisions Daytona secret `qwen-token-plan` → sandbox env `OPENAI_API_KEY`, host allowlist `token-plan.ap-southeast-1.maas.aliyuncs.com`. |
+| `DATASET_PATH` | Dataset CSV; default `shared/dataset/sample20.csv`. All rows × all models run. |
+| `BATCH_SIZE` | Concurrent runs; default `2`. |
+| `QWEN_TOKEN_PLAN_API_KEY` | Required by all experiments. |
+| `DAYTONA_API_KEY` | Required by experiment 1. |
+| `MODELS` | Experiments 2 and 3 only: `a,b` limits the models. |
 
 ## Run
 
-```bash
-set -a; . ./.env; set +a   # export .env
-uv run python benchmark.py
-```
-
-Rebuild dataset: `uv run python build_dataset.py`.
-
-Artifacts: `runs/<model>/<instance_id>/` — `install.log`, `agent.log`, `trajectory.traj.json`, `patch.diff`, `metrics.jsonl`, `status.json`.
-Exit code: `0` all runs OK; `1` any fail/censor/cleanup fail. No resume; rerun overwrites.
-
-### Local Docker, one container per bash call (opencode and mini-swe-agent)
+Every command runs from this folder (the repo root):
 
 ```bash
-set -a; . ./.env; set +a   # needs QWEN_TOKEN_PLAN_API_KEY
-uv run python local_benchmark.py opencode   # or: miniswe. Needs Docker running.
+set -a; . ./.env; set +a                              # export .env
+uv run python -m miniswe_daytona.benchmark            # experiment 1
+uv run python -m local_harness.local_benchmark opencode   # experiment 2 (Docker running)
+uv run python -m local_harness.local_benchmark miniswe    # experiment 3 (Docker running)
+uv run python -m shared.dataset.build_dataset         # rebuild the dataset
+uv run pytest
 ```
 
-Same tasks, models and Qwen token plan as `benchmark.py`; only the agent differs, everything else is shared code.
+Exit code: `0` all runs OK; `1` any fail/censor/cleanup fail. No resume; a rerun overwrites.
 
-- Harness: one container per task from `harness.Dockerfile` (both agents, built once; versions passed from `local_benchmark.py`), 1 vCPU / 2 GiB, no swap.
-  - opencode 1.19.2: provider `qwen-token-plan` in `opencode.json`, which denies every tool but bash (hiding them from the model) and sets opencode's `shell` to the tool client.
-  - mini-swe-agent 2.4.6: `benchmark.py`'s config, with `environment_class: mini_env.ToolContainerEnvironment` (`mini_env.py`), its local environment with every command sent to the tool client. Timeout (60 s), output and submission handling stay mini-swe-agent's.
-- Tools: `tool_client.py`, installed as `/opt/hook/bin/bash`, gets `bash -c <command>` from either agent, untouched, so the model's history shows what it typed (an earlier version rewrote commands in an opencode plugin, and the model started imitating the rewritten form). It forwards each command to a tool server in the runner (via `host.docker.internal`), which runs it with `docker run --rm` from the task image, 1 vCPU / 1 GiB, no swap. If the agent's own command timeout kills the client, the server kills the container too.
-- State: one named volume per task holds `/testbed`, seeded by Docker from the task image and mounted by the harness and every tool container. Nothing to sync; only state outside `/testbed` (pip installs, `/tmp`) is lost between calls.
-- Concurrency: `BATCH_SIZE` default 2, bounded by the machine (the published runs used 8). `MODELS=a,b` limits the models, e.g. to rerun some tasks with `DATASET_PATH`.
-- Artifacts: `runs/<agent>-<model>/<instance_id>/`, as above plus `toolcalls.jsonl` (per call: `docker run` wall time, exit code, `exec_start`/`exec_end`, whole-container CPU µs and memory peak) and `toolmetrics.jsonl` (`metrics.sh` 1s samples of every tool container, tagged with `call`). `metrics.jsonl` covers the harness only; `agent.log` is opencode's JSON event stream or mini-swe-agent's output, and mini-swe-agent also exports `trajectory.traj.json`; `install.log` covers the image pull and volume seed.
-- Charts: `charts/session_grid.py --agent opencode|miniswe|miniswe-daytona` (task × model grid), `charts/session_chart.py runs/<agent>-<model>/<task>` (one session).
-
-## Results
-
-- [qwen3.8-flash scikit-learn__scikit-learn-14629 task profile](images/qwen3.8-flash-scikit-learn__scikit-learn-14629.png) (see [all tasks](images/compare-grid.png)) ![qwen3.8-flash-scikit-learn__scikit-learn-14629.png](images/qwen3.8-flash-scikit-learn__scikit-learn-14629.png)
-- [usage boxplot](images/usage-boxplot.png) ![usage-boxplot.png](images/usage-boxplot.png)
-- [tool binding](images/tool-binding.png) ![tool-binding.png](images/tool-binding.png)
-- [tool gaps](images/tool-gaps.png) ![tool-gaps.png](images/tool-gaps.png)
-- [usage ccdf](images/usage-ccdf.png) ![usage-ccdf.png](images/usage-ccdf.png)
+Every run writes `status.json` (phases, exit codes, outcome, censoring), `install.log`, `agent.log`, `patch.diff` and `metrics.jsonl`. Each experiment README lists its extra files.

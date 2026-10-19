@@ -1,4 +1,5 @@
-"""mini-swe-agent environment for local_benchmark.py (environment_class: mini_env.ToolContainerEnvironment).
+"""Experiment 3: mini-swe-agent environment for local_harness/local_benchmark.py
+(environment_class: mini_env.ToolContainerEnvironment; copied to /opt/hook in the harness).
 
 mini-swe-agent's local environment, except every command runs through /opt/hook/bin/bash
 (tool_client.py), i.e. in a fresh tool container, like opencode's bash. Timeout, output and

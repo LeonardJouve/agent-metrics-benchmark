@@ -31,8 +31,7 @@ SPLIT = "test"
 EXPECTED_SOURCE_ROWS = 500
 PAGE_SIZE = 100
 SAMPLE_ROW_COUNT = 20
-REPO_ROOT = Path(__file__).resolve().parent
-SAMPLE20_PATH = REPO_ROOT / "data" / "sample20.csv"
+SAMPLE20_PATH = Path(__file__).resolve().parent / "sample20.csv"
 
 
 def _finite_seconds(hint: object) -> float | None:

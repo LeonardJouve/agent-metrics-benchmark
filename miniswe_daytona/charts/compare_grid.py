@@ -1,33 +1,28 @@
 """Model comparison grid: one column per task, one row per model (first model on top).
 
-Usage: uv run python charts/compare_grid.py
-       uv run python charts/compare_grid.py --models qwen3.8-flash deepseek-v4-flash-0731
+Usage: uv run python -m miniswe_daytona.charts.compare_grid
+       uv run python -m miniswe_daytona.charts.compare_grid --models qwen3.8-flash deepseek-v4-flash-0731
 """
 from __future__ import annotations
 
 import argparse
-import csv
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from taskplot import plot_task
+from miniswe_daytona.charts.taskplot import plot_task
+from shared.plot import DEFAULT_DATASET, dataset_order
 
 DEFAULT_MODELS = ["qwen3.8-flash", "deepseek-v4-flash-0731"]  # first = top row
-
-
-def dataset_order(dataset: Path) -> list[str]:
-    with dataset.open(encoding="utf-8") as fh:
-        return [row["instance_id"] for row in csv.DictReader(fh)]
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=DEFAULT_MODELS, help="top row first")
-    ap.add_argument("--runs", type=Path, default=Path("runs"))
-    ap.add_argument("--dataset", type=Path, default=Path("data/sample20.csv"))
+    ap.add_argument("--runs", type=Path, default=Path("miniswe_daytona/runs"))
+    ap.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     ap.add_argument("--tasks", nargs="+", default=None, help="default: dataset order")
-    ap.add_argument("-o", "--out", type=Path, default=Path("images/compare-grid.png"))
+    ap.add_argument("-o", "--out", type=Path, default=Path("miniswe_daytona/images/compare-grid.png"))
     ap.add_argument("--width", type=float, default=12.0, help="inches per task column")
     ap.add_argument("--height", type=float, default=8.0, help="inches per model row")
     ap.add_argument("--dpi", type=int, default=100)

@@ -5,7 +5,7 @@ Harness: metrics.jsonl (1 s cgroup samples). Tools: toolcalls.jsonl, one summary
 its CPU is spread evenly over the `docker run` window, its memory peak held over that window
 (upper bound: most calls live ~1 s, too short for their own 1 s samples).
 
-Usage: uv run python charts/session_chart.py runs/opencode-qwen3.8-flash/sympy__sympy-15976
+Usage: uv run python -m local_harness.session_chart opencode_tools/runs/qwen3.8-flash/sympy__sympy-15976
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from taskplot import _epoch, load_samples
+from shared.plot import _epoch, load_samples
 
 
 def cgroup_series(run_dir: Path):
@@ -77,10 +77,12 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("run_dir", type=Path)
     ap.add_argument("-o", "--out", type=Path, default=None,
-                    help="default: images/<agent>-<model>-<task>.png")
+                    help="default: <exp>/images/<model>-<task>.png")
     args = ap.parse_args()
     run_dir = args.run_dir
-    out = args.out or Path("images") / f"{run_dir.parent.name}-{run_dir.name}.png"
+    # <exp>/runs/<model>/<task>
+    exp_dir = run_dir.parents[2]
+    out = args.out or exp_dir / "images" / f"{run_dir.parent.name}-{run_dir.name}.png"
 
     fig, (ax_cpu, ax_mem) = plt.subplots(2, 1, figsize=(14, 7), sharex=True)
     plot_session(ax_cpu, ax_mem, run_dir)
@@ -89,7 +91,7 @@ def main() -> int:
     ax_cpu.set_ylim(bottom=0)
     ax_mem.set_ylim(bottom=0)
     ax_cpu.legend(loc="upper right")
-    ax_cpu.set_title(f"{run_dir.parent.name} / {run_dir.name}")
+    ax_cpu.set_title(f"{exp_dir.name} / {run_dir.parent.name} / {run_dir.name}")
     ax_mem.set_xlabel("s since agent start")
     fig.tight_layout()
     out.parent.mkdir(parents=True, exist_ok=True)

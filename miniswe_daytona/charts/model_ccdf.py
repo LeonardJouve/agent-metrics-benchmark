@@ -3,7 +3,7 @@
 Grid layout: rows = models (first on top), cols = CPU / memory, all tasks pooled
 like the boxplot. Long tail = curve staying high far right.
 
-Usage: uv run python charts/model_ccdf.py
+Usage: uv run python -m miniswe_daytona.charts.model_ccdf
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from model_boxplot import DEFAULT_MODELS, model_samples
+from miniswe_daytona.charts.model_boxplot import DEFAULT_MODELS, model_samples
 
 
 def ccdf(values: list[float]) -> tuple[np.ndarray, np.ndarray]:
@@ -27,8 +27,8 @@ def ccdf(values: list[float]) -> tuple[np.ndarray, np.ndarray]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=DEFAULT_MODELS)
-    ap.add_argument("--runs", type=Path, default=Path("runs"))
-    ap.add_argument("-o", "--out", type=Path, default=Path("images/usage-ccdf.png"))
+    ap.add_argument("--runs", type=Path, default=Path("miniswe_daytona/runs"))
+    ap.add_argument("-o", "--out", type=Path, default=Path("miniswe_daytona/images/usage-ccdf.png"))
     ap.add_argument("--dpi", type=int, default=100)
     args = ap.parse_args()
 

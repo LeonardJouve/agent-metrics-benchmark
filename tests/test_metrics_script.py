@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT = Path(__file__).resolve().parent.parent / "metrics.sh"
+SCRIPT = Path(__file__).resolve().parent.parent / "shared" / "metrics.sh"
 # Resolve the full path: CreateProcess would otherwise prefer System32\bash.exe (WSL),
 # which cannot see the /c/... paths this test passes.
 BASH = shutil.which("bash")

@@ -8,8 +8,8 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-import build_dataset
-from build_dataset import (
+from shared.dataset import build_dataset
+from shared.dataset.build_dataset import (
     EXPECTED_SOURCE_ROWS,
     MAX_IMAGE_BYTES,
     PAGE_SIZE,

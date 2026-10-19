@@ -2,8 +2,8 @@ import asyncio
 import base64
 import json
 
-import local_benchmark
-import tool_client
+from local_harness import local_benchmark
+from local_harness import tool_client
 
 
 def test_client_relays_tool_output_and_exit_code(monkeypatch, capsys):

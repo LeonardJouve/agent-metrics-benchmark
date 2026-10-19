@@ -1,7 +1,7 @@
 """Overall CPU + RAM usage distributions: one boxplot per model per metric, pooling every
 1-second sample of every task. No per-task aggregation, no task names.
 
-Usage: uv run python charts/model_boxplot.py
+Usage: uv run python -m miniswe_daytona.charts.model_boxplot
 """
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from taskplot import _epoch, load_samples
+from shared.plot import _epoch, load_samples
 
 DEFAULT_MODELS = ["qwen3.8-flash", "deepseek-v4-flash-0731"]  # first = left
 
@@ -36,8 +36,8 @@ def model_samples(model_dir: Path) -> tuple[list[float], list[float]]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=DEFAULT_MODELS)
-    ap.add_argument("--runs", type=Path, default=Path("runs"))
-    ap.add_argument("-o", "--out", type=Path, default=Path("images/usage-boxplot.png"))
+    ap.add_argument("--runs", type=Path, default=Path("miniswe_daytona/runs"))
+    ap.add_argument("-o", "--out", type=Path, default=Path("miniswe_daytona/images/usage-boxplot.png"))
     ap.add_argument("--dpi", type=int, default=100)
     args = ap.parse_args()
 

@@ -1,8 +1,8 @@
 #!/usr/local/bin/python3 -IS
 """The agents' shell in the harness container, installed as /opt/hook/bin/bash: opencode's `shell`
-(opencode.json), mini-swe-agent's via mini_env.py. Both run `<shell> -c <command>`, so the command
-reaches us untouched and the model's history shows exactly what it typed. Named bash so opencode's
-tool prompt is unchanged.
+(opencode_tools/opencode.json), mini-swe-agent's via miniswe_tools/mini_env.py. Both run
+`<shell> -c <command>`, so the command reaches us untouched and the model's history shows exactly
+what it typed. Named bash so opencode's tool prompt is unchanged.
 
 Sends the base64 command to the runner's tool server (TOOL_SERVER=host:port), which runs it in a
 fresh container from the task image. Prints the output and exits with the command's exit code.
