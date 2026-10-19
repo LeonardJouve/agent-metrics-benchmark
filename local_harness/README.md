@@ -2,6 +2,17 @@
 
 `local_benchmark.py opencode|miniswe` runs one agent over the task × model matrix on local Docker. Only the agent differs between [experiment 2](../opencode_tools/README.md) and [experiment 3](../miniswe_tools/README.md).
 
+**Why:** in a single sandbox (experiment 1), agent and tools share one cgroup. Running every bash call in its own container gives each tool call its own cgroup, so the agent's cost and each call's cost can be measured apart. This is also a working model of per-tool-call sandboxing.
+
+```
+runner (local_benchmark.py, on the host)
+ ├─ harness container: agent + metrics.sh ─── bash -c <cmd> ──▶ tool_client.py
+ │                                                                 │ TCP (host.docker.internal)
+ ├─ tool server ◀──────────────────────────────────────────────────┘
+ │    └─ docker run --rm <task image> ──▶ tool container: <cmd> + metrics.sh   (one per call)
+ └─ named volume testbed-<task>: /testbed, mounted by the harness and every tool container
+```
+
 - Harness: one container per task from `harness.Dockerfile` (both agents, built once from the repo root, versions passed from `local_benchmark.py`), 1 vCPU / 2 GiB, no swap. `shared/metrics.sh` samples it → `metrics.jsonl` (the agent alone).
 - Tools: `tool_client.py`, installed as `/opt/hook/bin/bash`, receives `bash -c <command>` from either agent untouched, so the model's history shows exactly what it typed. (An earlier version rewrote commands in an opencode plugin, and the model started imitating the rewritten form.) It forwards each command to a tool server in the runner (via `host.docker.internal`), which runs it with `docker run --rm` from the task image, 1 vCPU / 1 GiB, no swap. If the agent's own command timeout kills the client, the server kills the container too.
 - State: one named volume per task holds `/testbed`. Docker seeds it from the task image, and the harness and every tool container mount it, so nothing needs syncing. Only state outside `/testbed` (pip installs, `/tmp`) is lost between calls.
